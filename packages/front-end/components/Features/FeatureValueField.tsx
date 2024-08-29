@@ -493,7 +493,7 @@ function JSONTextEditor({
             Plain Text
           </Button>
           <div>
-            <label>{" " + label}</label>
+            <label>{label}</label>
           </div>
           <Editor
             data={parsed}
