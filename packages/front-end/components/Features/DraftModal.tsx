@@ -168,7 +168,7 @@ export default function DraftModal({
           : undefined
       }
       cta="Publish"
-      ctaEnabled={!!mergeResult.success && hasChanges && comment != ""}
+      ctaEnabled={!!mergeResult.success && hasChanges && !!comment?.trim()}
       close={close}
       closeCta="Cancel"
       size="max"

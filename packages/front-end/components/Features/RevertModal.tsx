@@ -88,7 +88,7 @@ export default function RevertModal({
           : undefined
       }
       cta="Revert and Publish"
-      ctaEnabled={comment != ""}
+      ctaEnabled={!!comment?.trim()}
       close={close}
       closeCta="Cancel"
       size="max"
