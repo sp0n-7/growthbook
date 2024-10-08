@@ -24,7 +24,7 @@ function fixJsonRecursive(obj) {
 export default function JsonDiff({
   value,
   defaultVal = "{}",
-  fullStyle = { maxHeight: 250, overflowY: "auto", maxWidth: "100%" },
+  fullStyle = { maxHeight: 300, overflowY: "auto", maxWidth: "100%" },
 }: {
   value: string;
   defaultVal?: string;
