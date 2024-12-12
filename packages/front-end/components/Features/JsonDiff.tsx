@@ -41,7 +41,7 @@ export default function JsonDiff({
     const scrollToFirstDiff = () => {
       if (viewerRef.current) {
         const firstDiff = viewerRef.current.querySelector(
-          ".c-json-p.c-line-del"
+          ".c-json-p.c-line-del, .c-json-p.c-line-add"
         );
         if (firstDiff) {
           // calculate offset relative to the scrollable container
