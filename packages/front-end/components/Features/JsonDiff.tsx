@@ -51,7 +51,7 @@ export default function JsonDiff({
             diffRect.top - containerRect.top + viewerRef.current.scrollTop - 30;
 
           // scroll the container to the calculated offset
-          viewerRef.current.scrollTo({ top: offsetTop, behavior: "smooth" });
+          viewerRef.current.scrollTo({ top: offsetTop, behavior: "instant" });
         }
       }
     };
