@@ -86,7 +86,9 @@ const ExperimentsPage = (): React.ReactElement => {
         projectId,
         projectName,
         projectIsDeReferenced,
-        tab: exp.archived
+        tab: exp.name.toLowerCase().includes("holdout")
+          ? "holdouts"
+          : exp.archived
           ? "archived"
           : exp.status === "draft"
           ? "drafts"
@@ -147,6 +149,7 @@ const ExperimentsPage = (): React.ReactElement => {
         if (item.status === "draft") is.push("draft");
         if (item.status === "running") is.push("running");
         if (item.status === "stopped") is.push("stopped");
+        if (item.name.toLowerCase().includes("holdout")) is.push("holdout");
         if (item.results === "won") is.push("winner");
         if (item.results === "lost") is.push("loser");
         if (item.results === "inconclusive") is.push("inconclusive");
@@ -316,11 +319,13 @@ const ExperimentsPage = (): React.ReactElement => {
             <>
               <div className="row align-items-center mb-3">
                 <div className="col-auto d-flex">
-                  {["running", "drafts", "stopped", "archived"].map(
+                  {["running", "drafts", "stopped", "holdouts", "archived"].map(
                     (tab, i) => {
                       const active = tabs.includes(tab);
 
                       if (tab === "archived" && !hasArchived) return null;
+                      if (tab === "holdouts" && !tabCounts["holdouts"])
+                        return null;
 
                       return (
                         <button
@@ -331,7 +336,10 @@ const ExperimentsPage = (): React.ReactElement => {
                             "rounded-left": i === 0,
                             "rounded-right":
                               tab === "archived" ||
-                              (tab === "stopped" && !hasArchived),
+                              (tab === "holdouts" && !hasArchived) ||
+                              (tab === "stopped" &&
+                                !hasArchived &&
+                                !tabCounts["holdouts"]),
                           })}
                           style={{
                             fontSize: "1em",
@@ -509,6 +517,8 @@ const ExperimentsPage = (): React.ReactElement => {
                             ? "ended"
                             : e.tab === "archived"
                             ? "updated"
+                            : e.tab === "holdouts"
+                            ? "created"
                             : ""}{" "}
                           {date(e.date)}
                         </td>
