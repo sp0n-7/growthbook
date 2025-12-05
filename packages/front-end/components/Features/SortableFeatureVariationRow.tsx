@@ -40,6 +40,7 @@ interface SortableProps {
   valueAsId: boolean;
   feature?: FeatureInterface;
   showCohortValidation?: boolean;
+  experimentName?: string;
 }
 
 type VariationProps = SortableProps &
@@ -61,6 +62,7 @@ export const VariationRow = forwardRef<HTMLTableRowElement, VariationProps>(
       setWeight,
       feature,
       showCohortValidation = false,
+      experimentName,
       ...props
     },
     ref
@@ -98,7 +100,10 @@ export const VariationRow = forwardRef<HTMLTableRowElement, VariationProps>(
           {setVariations ? (
             <>
               {showCohortValidation && (
-                <CohortValidationWarning value={variation.value} />
+                <CohortValidationWarning
+                  value={variation.value}
+                  experimentName={experimentName}
+                />
               )}
               <FeatureValueField
                 id={`value_${i}`}

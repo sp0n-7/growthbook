@@ -906,6 +906,9 @@ export default function RuleModal({
             setVariations={(variations) => form.setValue("values", variations)}
             feature={feature}
             showCohortValidation={true}
+            experimentName={
+              type === "experiment-ref-new" ? form.watch("name") : undefined
+            }
           />
           {namespaces && namespaces.length > 0 && (
             <NamespaceSelector
