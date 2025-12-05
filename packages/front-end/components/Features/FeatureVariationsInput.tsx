@@ -40,7 +40,6 @@ export interface Props {
   customSplitOn?: boolean;
   feature?: FeatureInterface;
   showCohortValidation?: boolean;
-  experimentName?: string;
 }
 
 export default function FeatureVariationsInput({
@@ -61,7 +60,6 @@ export default function FeatureVariationsInput({
   customSplitOn,
   feature,
   showCohortValidation = false,
-  experimentName,
 }: Props) {
   const weights = variations.map((v) => v.weight);
   const isEqualWeights = weights.every((w) => w === weights[0]);
@@ -213,7 +211,6 @@ export default function FeatureVariationsInput({
                   valueAsId={valueAsId}
                   feature={feature}
                   showCohortValidation={showCohortValidation}
-                  experimentName={experimentName}
                 />
               ))}
             </SortableVariationsList>

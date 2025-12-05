@@ -905,9 +905,11 @@ export default function RuleModal({
             }
             setVariations={(variations) => form.setValue("values", variations)}
             feature={feature}
-            showCohortValidation={true}
-            experimentName={
-              type === "experiment-ref-new" ? form.watch("name") : undefined
+            showCohortValidation={
+              // Skip validation for holdout experiments
+              type === "experiment-ref-new"
+                ? !form.watch("name")?.toLowerCase().includes("holdout")
+                : true
             }
           />
           {namespaces && namespaces.length > 0 && (
