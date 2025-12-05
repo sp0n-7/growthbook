@@ -92,7 +92,10 @@ export default function LinkedFeatureFlag({ info, experiment, open }: Props) {
                     feature={info.feature}
                     showExperimentWarning={false}
                   />
-                  <CohortValidationWarning value={v} />
+                  {/* Skip cohort validation for holdout experiments */}
+                  {!experiment.name?.toLowerCase().includes("holdout") && (
+                    <CohortValidationWarning value={v} />
+                  )}
                 </td>
               </tr>
             ))}

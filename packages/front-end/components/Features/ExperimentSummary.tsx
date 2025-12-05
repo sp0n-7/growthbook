@@ -168,7 +168,10 @@ export default function ExperimentSummary({
                   defaultVal={feature.defaultValue}
                 />
                 <ValidateValue value={r.value} feature={feature} />
-                <CohortValidationWarning value={r.value} />
+                {/* Skip cohort validation for holdout experiments */}
+                {!experiment?.name?.toLowerCase().includes("holdout") && (
+                  <CohortValidationWarning value={r.value} />
+                )}
               </td>
               <td>{r?.name}</td>
               <td>
