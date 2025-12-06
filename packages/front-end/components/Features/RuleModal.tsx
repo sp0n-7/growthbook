@@ -702,12 +702,10 @@ export default function RuleModal({
                   const value = form.watch(`variations.${i}.value`) || "";
                   return (
                     <div key={v.id}>
-                      {/* Skip cohort validation for holdout experiments */}
-                      {!selectedExperiment.name
-                        ?.toLowerCase()
-                        .includes("holdout") && (
-                        <CohortValidationWarning value={value} />
-                      )}
+                      <CohortValidationWarning
+                        value={value}
+                        experimentName={selectedExperiment.name}
+                      />
                       <FeatureValueField
                         label={v.name}
                         id={v.id}
@@ -910,11 +908,9 @@ export default function RuleModal({
             }
             setVariations={(variations) => form.setValue("values", variations)}
             feature={feature}
-            showCohortValidation={
-              // Skip validation for holdout experiments
-              type === "experiment-ref-new"
-                ? !form.watch("name")?.toLowerCase().includes("holdout")
-                : true
+            showCohortValidation={true}
+            experimentName={
+              type === "experiment-ref-new" ? form.watch("name") : undefined
             }
           />
           {namespaces && namespaces.length > 0 && (
