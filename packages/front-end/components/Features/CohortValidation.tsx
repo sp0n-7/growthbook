@@ -43,7 +43,18 @@ export function validateCohort(value: string): CohortValidation {
   }
 }
 
-export function CohortValidationWarning({ value }: { value: string }) {
+export function CohortValidationWarning({
+  value,
+  experimentName,
+}: {
+  value: string;
+  experimentName?: string;
+}) {
+  // Skip validation for holdout experiments
+  if (experimentName?.toLowerCase().includes("holdout")) {
+    return null;
+  }
+
   const validation = validateCohort(value);
   if (validation.valid) return null;
 

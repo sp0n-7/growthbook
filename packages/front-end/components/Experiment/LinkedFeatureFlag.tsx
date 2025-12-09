@@ -92,7 +92,10 @@ export default function LinkedFeatureFlag({ info, experiment, open }: Props) {
                     feature={info.feature}
                     showExperimentWarning={false}
                   />
-                  <CohortValidationWarning value={v} />
+                  <CohortValidationWarning
+                    value={v}
+                    experimentName={experiment.name}
+                  />
                 </td>
               </tr>
             ))}

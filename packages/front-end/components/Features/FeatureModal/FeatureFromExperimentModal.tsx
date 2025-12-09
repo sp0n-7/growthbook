@@ -434,7 +434,10 @@ export default function FeatureFromExperimentModal({
             const value = form.watch(`variations.${i}.value`) || "";
             return (
               <div key={v.id}>
-                <CohortValidationWarning value={value} />
+                <CohortValidationWarning
+                  value={value}
+                  experimentName={experiment.name}
+                />
                 <FeatureValueField
                   label={v.name}
                   id={v.id}

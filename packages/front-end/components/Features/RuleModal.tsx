@@ -702,7 +702,10 @@ export default function RuleModal({
                   const value = form.watch(`variations.${i}.value`) || "";
                   return (
                     <div key={v.id}>
-                      <CohortValidationWarning value={value} />
+                      <CohortValidationWarning
+                        value={value}
+                        experimentName={selectedExperiment.name}
+                      />
                       <FeatureValueField
                         label={v.name}
                         id={v.id}
@@ -906,6 +909,9 @@ export default function RuleModal({
             setVariations={(variations) => form.setValue("values", variations)}
             feature={feature}
             showCohortValidation={true}
+            experimentName={
+              type === "experiment-ref-new" ? form.watch("name") : undefined
+            }
           />
           {namespaces && namespaces.length > 0 && (
             <NamespaceSelector
