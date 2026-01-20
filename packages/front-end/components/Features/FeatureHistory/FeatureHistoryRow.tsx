@@ -1,11 +1,17 @@
 import React, { useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { EventInterface } from "back-end/types/event";
 import { datetime } from "shared/dates";
 import { FaAngleDown, FaAngleUp } from "react-icons/fa";
 import Code from "@/components/SyntaxHighlighting/Code";
-import JsonDiff from "@/components/Features/JsonDiff";
 import { formatEventType, getFeatureChangesSummary } from "./utils";
+
+// Dynamically import JsonDiff with SSR disabled because react-json-view-compare uses 'self'
+const JsonDiff = dynamic(() => import("@/components/Features/JsonDiff"), {
+  ssr: false,
+  loading: () => <div className="text-muted">Loading diff...</div>,
+});
 
 type FeatureHistoryRowProps = {
   event: EventInterface;
