@@ -574,12 +574,17 @@ export default function FeaturesPage() {
         <div className="col">
           <h1>Features</h1>
         </div>
-        {features.length > 0 &&
-          permissionsUtil.canViewFeatureModal(project) &&
-          canCreateFeatures && (
-            <div className="col-auto">
+        <div className="col-auto d-flex align-items-center">
+          {permissionsUtil.canViewAuditLogs() && (
+            <Link href="/features/history" className="btn btn-outline-primary">
+              View History
+            </Link>
+          )}
+          {features.length > 0 &&
+            permissionsUtil.canViewFeatureModal(project) &&
+            canCreateFeatures && (
               <button
-                className="btn btn-primary float-right"
+                className="btn btn-primary ml-2"
                 onClick={() => {
                   setModalOpen(true);
                   track("Viewed Feature Modal", {
@@ -593,8 +598,8 @@ export default function FeaturesPage() {
                 </span>
                 Add Feature
               </button>
-            </div>
-          )}
+            )}
+        </div>
       </div>
       <p>
         Features enable you to change your app&apos;s behavior from within the
