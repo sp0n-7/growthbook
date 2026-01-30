@@ -1,5 +1,6 @@
 name: Find feature flag code references
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
