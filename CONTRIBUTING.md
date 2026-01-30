@@ -1,8 +1,6 @@
 # Contributing Guide
 
-Interested in making GrowthBook better? So are we! This guide should help get you setup with a local development environment so you can make changes, create PRs, and get your code merged.
-
-If you just want to contribute a client library in a new language and not make changes to the app itself, you can skip the instructions here and view https://docs.growthbook.io/lib/build-your-own instead.
+Use the following steps to setup local development
 
 ## Requirements
 
@@ -16,35 +14,18 @@ If you just want to contribute a client library in a new language and not make c
   - [pandas](https://pandas.pydata.org/docs/getting_started/install.html)
 - [Docker](https://docs.docker.com/engine/install/) (for running MongoDB locally)
 
-### Windows users
-
-One sure shot way to run GrowthBook on Windows is through installing [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/setup/environment#set-up-your-linux-user-info). These are some of the steps to follow, also outlined in the link above:
-
-1. Search for your terminal app in the windows search bar
-2. Select the option to "Run as administrator"
-3. Now, on the terminal, run `wsl --install`
-4. After the installation is complete, restart your computer
-5. Set up your Linux username and password
-6. Run `sudo apt update && sudo apt upgrade` (for Ubuntu or Desbian) to update and upgrade packages
-
-Now you have the basic Linux system set up, and can follow along with all the other steps.
-
-It's **strongly recommended** that if you are using WSL on Windows that you run the project from your `/home/:user` directory rather than a `/mnt/` directory: the `/mnt` directory has poor performance, and the file watcher for nodemon will not work, requiring you to manually stop and re-run the `yarn dev` command.
-
 ## Getting started
 
-1. Fork the project
-2. Clone your forked project by running `git clone git@github.com:{ YOUR_USERNAME }/growthbook.git`
-   - Can also use `git clone` and list the HTTPS URL of the repo afterwards
-3. Run `cd growthbook`
-4. Run `yarn` to install dependencies
-5. Install [poetry](https://python-poetry.org/docs/)
+1. Clone this repo locally
+2. Run `cd growthbook`
+3. Run `yarn` to install dependencies
+4. Install [poetry](https://python-poetry.org/docs/)
    - Run `curl -sSL https://install.python-poetry.org | python3 -`
    - Close and reopen your terminal
    - Run `poetry --version` to confirm a successful install
    - If unsuccessful add the Poetry path (ex. `$HOME/.poetry/bin`) to your global path (ex. `/etc/profile`, `/etc/environment`, `~/.bashrc`, `~/.zshrc`)
-6. Run `yarn setup` to do the initial build
-7. If you have Docker installed, start MongoDB in Docker:
+5. Run `yarn setup` to do the initial build
+6. If you have Docker installed, start MongoDB in Docker:
 
 ```sh
 docker run -d -p 27017:27017 --name mongo \
