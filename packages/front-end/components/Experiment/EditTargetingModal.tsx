@@ -459,6 +459,12 @@ function TargetingForm({
 
   return (
     <div className="px-2 pt-2">
+      <div className="alert alert-warning">
+        ⚠️ These settings are only relevant for front-end experiments run via
+        feature flags in GrowthBook. This will not influence back-end
+        experiments.
+      </div>
+
       {safeToEdit && (
         <>
           <Field
