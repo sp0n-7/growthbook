@@ -251,6 +251,11 @@ const NewExperimentForm: FC<NewExperimentFormProps> = ({
       throw new Error("Experiment Name must not be empty");
     }
 
+    if (isNewExperiment && !value.hashAttribute) {
+      setStep(1);
+      throw new Error("Please select an attribute to assign variations");
+    }
+
     // TODO: more validation?
     const data = { ...value };
 
@@ -486,6 +491,7 @@ const NewExperimentForm: FC<NewExperimentFormProps> = ({
                   containerClassName="flex-1"
                   label="Assign variation based on attribute"
                   labelClassName="font-weight-bold"
+                  required
                   options={attributeSchema
                     .filter((s) => !hasHashAttributes || s.hashAttribute)
                     .map((s) => ({ label: s.property, value: s.property }))}
