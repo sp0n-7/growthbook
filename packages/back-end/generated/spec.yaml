@@ -114,6 +114,9 @@ tags:
   - name: Environment_model
     x-displayName: Environment
     description: <SchemaDefinition schemaRef="#/components/schemas/Environment" />
+  - name: EventUser_model
+    x-displayName: EventUser
+    description: <SchemaDefinition schemaRef="#/components/schemas/EventUser" />
   - name: Experiment_model
     x-displayName: Experiment
     description: <SchemaDefinition schemaRef="#/components/schemas/Experiment" />
@@ -153,6 +156,9 @@ tags:
   - name: FeatureForceRule_model
     x-displayName: FeatureForceRule
     description: <SchemaDefinition schemaRef="#/components/schemas/FeatureForceRule" />
+  - name: FeatureRevision_model
+    x-displayName: FeatureRevision
+    description: <SchemaDefinition schemaRef="#/components/schemas/FeatureRevision" />
   - name: FeatureRolloutRule_model
     x-displayName: FeatureRolloutRule
     description: <SchemaDefinition schemaRef="#/components/schemas/FeatureRolloutRule" />
@@ -568,6 +574,73 @@ paths:
                 properties:
                   feature:
                     $ref: '#/components/schemas/Feature'
+  '/features/{id}/revisions':
+    get:
+      parameters:
+        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/revisionStatus'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      summary: List revisions for a feature
+      description: |
+        Returns the most recent revisions of a feature, including unpublished
+        drafts and revisions in review. Useful for inspecting an in-flight change
+        before it is published. The underlying store currently caps the result at
+        the 25 most recent revisions per feature; pagination is applied on top of
+        that window.
+      tags:
+        - features
+      operationId: listFeatureRevisions
+      x-codeSamples:
+        - lang: cURL
+          source: |
+            curl https://api.growthbook.io/api/v1/features/my_feature/revisions?status=draft \
+              -u secret_abc123DEF456:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    required:
+                      - revisions
+                    properties:
+                      revisions:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/FeatureRevision'
+                  - $ref: '#/components/schemas/PaginationFields'
+  '/features/{id}/revisions/{version}':
+    get:
+      parameters:
+        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/revisionVersion'
+      summary: Get a single feature revision by version
+      description: |
+        Returns the full contents of one revision (default value, rules,
+        metadata) for the given feature. Useful for fetching a draft or
+        in-review revision so you can diff it against the live version returned
+        by `GET /features/{id}`.
+      tags:
+        - features
+      operationId: getFeatureRevision
+      x-codeSamples:
+        - lang: cURL
+          source: |
+            curl https://api.growthbook.io/api/v1/features/my_feature/revisions/7 \
+              -u secret_abc123DEF456:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - revision
+                properties:
+                  revision:
+                    $ref: '#/components/schemas/FeatureRevision'
   /feature-keys:
     get:
       summary: Get list of feature keys
@@ -4165,6 +4238,27 @@ components:
       description: Name of the global role
       schema:
         type: string
+    revisionVersion:
+      name: version
+      in: path
+      required: true
+      description: The version number of the requested feature revision
+      schema:
+        type: integer
+        min: 1
+    revisionStatus:
+      name: status
+      in: query
+      description: 'Filter feature revisions by status (e.g. `draft`, `published`, `pending-review`, `approved`, `changes-requested`, `discarded`)'
+      schema:
+        type: string
+        enum:
+          - draft
+          - published
+          - discarded
+          - approved
+          - changes-requested
+          - pending-review
   schemas:
     PaginationFields:
       type: object
@@ -4942,6 +5036,105 @@ components:
                 type: string
         experimentId:
           type: string
+    FeatureRevision:
+      type: object
+      required:
+        - featureId
+        - version
+        - baseVersion
+        - status
+        - dateCreated
+        - dateUpdated
+        - datePublished
+        - createdBy
+        - publishedBy
+        - comment
+        - defaultValue
+        - rules
+      properties:
+        featureId:
+          type: string
+        version:
+          type: integer
+          description: Monotonically-increasing revision number for this feature
+        baseVersion:
+          type: integer
+          description: The version this revision was based on (the live version at the time of fork)
+        status:
+          type: string
+          enum:
+            - draft
+            - published
+            - discarded
+            - approved
+            - changes-requested
+            - pending-review
+        dateCreated:
+          type: string
+          format: date-time
+        dateUpdated:
+          type: string
+          format: date-time
+        datePublished:
+          type: string
+          format: date-time
+          nullable: true
+          description: 'When this revision was published to live, or null if not yet published'
+        createdBy:
+          allOf:
+            - $ref: '#/components/schemas/EventUser'
+          nullable: true
+        publishedBy:
+          allOf:
+            - $ref: '#/components/schemas/EventUser'
+          nullable: true
+        comment:
+          type: string
+        defaultValue:
+          type: string
+          description: The serialized default value at this revision (JSON-encoded for `valueType=json`)
+        rules:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/FeatureRule'
+          description: 'Rules per environment, keyed by environment name'
+    EventUser:
+      oneOf:
+        - type: object
+          required:
+            - type
+            - id
+            - email
+            - name
+          properties:
+            type:
+              type: string
+              enum:
+                - dashboard
+            id:
+              type: string
+            email:
+              type: string
+            name:
+              type: string
+        - type: object
+          required:
+            - type
+            - apiKey
+          properties:
+            type:
+              type: string
+              enum:
+                - api_key
+            apiKey:
+              type: string
+      discriminator:
+        propertyName: type
+        mapping:
+          dashboard: '#/components/schemas/EventUser/oneOf/0'
+          api_key: '#/components/schemas/EventUser/oneOf/1'
     SdkConnection:
       type: object
       required:
@@ -6075,6 +6268,7 @@ x-tagGroups:
       - DataSource_model
       - Dimension_model
       - Environment_model
+      - EventUser_model
       - Experiment_model
       - ExperimentAnalysisSettings_model
       - ExperimentMetric_model
@@ -6088,6 +6282,7 @@ x-tagGroups:
       - FeatureExperimentRefRule_model
       - FeatureExperimentRule_model
       - FeatureForceRule_model
+      - FeatureRevision_model
       - FeatureRolloutRule_model
       - FeatureRule_model
       - Member_model

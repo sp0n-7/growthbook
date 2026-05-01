@@ -1,0 +1,35 @@
+parameters:
+  - $ref: "../parameters.yaml#/id"
+  - $ref: "../parameters.yaml#/revisionStatus"
+  - $ref: "../parameters.yaml#/limit"
+  - $ref: "../parameters.yaml#/offset"
+summary: List revisions for a feature
+description: |
+  Returns the most recent revisions of a feature, including unpublished
+  drafts and revisions in review. Useful for inspecting an in-flight change
+  before it is published. The underlying store currently caps the result at
+  the 25 most recent revisions per feature; pagination is applied on top of
+  that window.
+tags:
+  - features
+operationId: listFeatureRevisions
+x-codeSamples:
+  - lang: "cURL"
+    source: |
+      curl https://api.growthbook.io/api/v1/features/my_feature/revisions?status=draft \
+        -u secret_abc123DEF456:
+responses:
+  "200":
+    content:
+      application/json:
+        schema:
+          allOf:
+            - type: object
+              required:
+                - revisions
+              properties:
+                revisions:
+                  type: array
+                  items:
+                    $ref: "../schemas/FeatureRevision.yaml"
+            - $ref: "../schemas/PaginationFields.yaml"

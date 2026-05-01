@@ -90,3 +90,24 @@ globalRole:
   description: Name of the global role
   schema:
     type: string
+revisionVersion:
+  name: version
+  in: path
+  required: true
+  description: The version number of the requested feature revision
+  schema:
+    type: integer
+    min: 1
+revisionStatus:
+  name: status
+  in: query
+  description: Filter feature revisions by status (e.g. `draft`, `published`, `pending-review`, `approved`, `changes-requested`, `discarded`)
+  schema:
+    type: string
+    enum:
+      - draft
+      - published
+      - discarded
+      - approved
+      - changes-requested
+      - pending-review
