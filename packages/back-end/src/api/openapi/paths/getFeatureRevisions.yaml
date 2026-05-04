@@ -3,16 +3,14 @@ parameters:
   - $ref: "../parameters.yaml#/revisionStatus"
   - $ref: "../parameters.yaml#/limit"
   - $ref: "../parameters.yaml#/offset"
-summary: List revisions for a feature
+summary: Get all revisions for a feature
 description: |
-  Returns the most recent revisions of a feature, including unpublished
-  drafts and revisions in review. Useful for inspecting an in-flight change
-  before it is published. The underlying store currently caps the result at
-  the 25 most recent revisions per feature; pagination is applied on top of
-  that window.
+  Returns the revisions of a feature, including unpublished drafts and
+  revisions in review. Useful for inspecting an in-flight change before it
+  is published.
 tags:
   - features
-operationId: listFeatureRevisions
+operationId: getFeatureRevisions
 x-codeSamples:
   - lang: "cURL"
     source: |

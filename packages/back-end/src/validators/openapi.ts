@@ -34,60 +34,7 @@ export const apiFeatureExperimentRuleValidator = z.object({ "description": z.str
 
 export const apiFeatureExperimentRefRuleValidator = z.object({ "description": z.string(), "id": z.string(), "enabled": z.boolean(), "type": z.literal("experiment-ref"), "condition": z.string().optional(), "variations": z.array(z.object({ "value": z.string(), "variationId": z.string() })), "experimentId": z.string() }).strict()
 
-export const apiFeatureRevisionValidator = z.object({ "featureId": z.string(), "version": z.coerce.number().int().describe("Monotonically-increasing revision number for this feature"), "baseVersion": z.coerce.number().int().describe("The version this revision was based on (the live version at the time of fork)"), "status": z.enum(["draft","published","discarded","approved","changes-requested","pending-review"]), "dateCreated": z.string(), "dateUpdated": z.string(), "datePublished": z.string().nullable().describe("When this revision was published to live, or null if not yet published"), "createdBy": z.any().superRefine((x, ctx) => {
-    const schemas = [z.object({ "type": z.literal("dashboard"), "id": z.string(), "email": z.string(), "name": z.string() }), z.object({ "type": z.literal("api_key"), "apiKey": z.string() })];
-    const errors = schemas.reduce(
-      (errors: z.ZodError[], schema) =>
-        ((result) => ("error" in result ? [...errors, result.error] : errors))(
-          schema.safeParse(x)
-        ),
-      []
-    );
-    if (schemas.length - errors.length !== 1) {
-      ctx.addIssue({
-        path: ctx.path,
-        code: "invalid_union",
-        unionErrors: errors,
-        message: "Invalid input: Should pass single schema",
-      });
-    }
-  }).nullable(), "publishedBy": z.any().superRefine((x, ctx) => {
-    const schemas = [z.object({ "type": z.literal("dashboard"), "id": z.string(), "email": z.string(), "name": z.string() }), z.object({ "type": z.literal("api_key"), "apiKey": z.string() })];
-    const errors = schemas.reduce(
-      (errors: z.ZodError[], schema) =>
-        ((result) => ("error" in result ? [...errors, result.error] : errors))(
-          schema.safeParse(x)
-        ),
-      []
-    );
-    if (schemas.length - errors.length !== 1) {
-      ctx.addIssue({
-        path: ctx.path,
-        code: "invalid_union",
-        unionErrors: errors,
-        message: "Invalid input: Should pass single schema",
-      });
-    }
-  }).nullable(), "comment": z.string(), "defaultValue": z.string().describe("The serialized default value at this revision (JSON-encoded for `valueType=json`)"), "rules": z.record(z.array(z.union([z.object({ "description": z.string(), "condition": z.string(), "savedGroupTargeting": z.array(z.object({ "matchType": z.enum(["all","any","none"]), "savedGroups": z.array(z.string()) })).optional(), "id": z.string(), "enabled": z.boolean(), "type": z.literal("force"), "value": z.string() }), z.object({ "description": z.string(), "condition": z.string(), "savedGroupTargeting": z.array(z.object({ "matchType": z.enum(["all","any","none"]), "savedGroups": z.array(z.string()) })).optional(), "id": z.string(), "enabled": z.boolean(), "type": z.literal("rollout"), "value": z.string(), "coverage": z.coerce.number(), "hashAttribute": z.string() }), z.object({ "description": z.string(), "condition": z.string(), "id": z.string(), "enabled": z.boolean(), "type": z.literal("experiment"), "trackingKey": z.string().optional(), "hashAttribute": z.string().optional(), "fallbackAttribute": z.string().optional(), "disableStickyBucketing": z.any().optional(), "bucketVersion": z.coerce.number().optional(), "minBucketVersion": z.coerce.number().optional(), "namespace": z.any().optional(), "coverage": z.coerce.number().optional(), "value": z.array(z.object({ "value": z.string(), "weight": z.coerce.number(), "name": z.string().optional() })).optional() }), z.object({ "description": z.string(), "id": z.string(), "enabled": z.boolean(), "type": z.literal("experiment-ref"), "condition": z.string().optional(), "variations": z.array(z.object({ "value": z.string(), "variationId": z.string() })), "experimentId": z.string() })]))).describe("Rules per environment, keyed by environment name") }).strict()
-
-export const apiEventUserValidator = z.any().superRefine((x, ctx) => {
-    const schemas = [z.object({ "type": z.literal("dashboard"), "id": z.string(), "email": z.string(), "name": z.string() }), z.object({ "type": z.literal("api_key"), "apiKey": z.string() })];
-    const errors = schemas.reduce(
-      (errors: z.ZodError[], schema) =>
-        ((result) => ("error" in result ? [...errors, result.error] : errors))(
-          schema.safeParse(x)
-        ),
-      []
-    );
-    if (schemas.length - errors.length !== 1) {
-      ctx.addIssue({
-        path: ctx.path,
-        code: "invalid_union",
-        unionErrors: errors,
-        message: "Invalid input: Should pass single schema",
-      });
-    }
-  })
+export const apiFeatureRevisionValidator = z.object({ "baseVersion": z.coerce.number().int(), "version": z.coerce.number().int(), "comment": z.string(), "date": z.string(), "status": z.enum(["draft","published","discarded","approved","changes-requested","pending-review"]), "publishedBy": z.string().optional(), "defaultValue": z.string().describe("The serialized default value at this revision (JSON-encoded for `valueType=json`)").optional(), "rules": z.record(z.array(z.union([z.object({ "description": z.string(), "condition": z.string(), "savedGroupTargeting": z.array(z.object({ "matchType": z.enum(["all","any","none"]), "savedGroups": z.array(z.string()) })).optional(), "id": z.string(), "enabled": z.boolean(), "type": z.literal("force"), "value": z.string() }), z.object({ "description": z.string(), "condition": z.string(), "savedGroupTargeting": z.array(z.object({ "matchType": z.enum(["all","any","none"]), "savedGroups": z.array(z.string()) })).optional(), "id": z.string(), "enabled": z.boolean(), "type": z.literal("rollout"), "value": z.string(), "coverage": z.coerce.number(), "hashAttribute": z.string() }), z.object({ "description": z.string(), "condition": z.string(), "id": z.string(), "enabled": z.boolean(), "type": z.literal("experiment"), "trackingKey": z.string().optional(), "hashAttribute": z.string().optional(), "fallbackAttribute": z.string().optional(), "disableStickyBucketing": z.any().optional(), "bucketVersion": z.coerce.number().optional(), "minBucketVersion": z.coerce.number().optional(), "namespace": z.any().optional(), "coverage": z.coerce.number().optional(), "value": z.array(z.object({ "value": z.string(), "weight": z.coerce.number(), "name": z.string().optional() })).optional() }), z.object({ "description": z.string(), "id": z.string(), "enabled": z.boolean(), "type": z.literal("experiment-ref"), "condition": z.string().optional(), "variations": z.array(z.object({ "value": z.string(), "variationId": z.string() })), "experimentId": z.string() })]))), "definitions": z.record(z.string().describe("A JSON stringified [FeatureDefinition](#tag/FeatureDefinition_model)")).optional() }).strict()
 
 export const apiSdkConnectionValidator = z.object({ "id": z.string(), "dateCreated": z.string(), "dateUpdated": z.string(), "name": z.string(), "organization": z.string(), "languages": z.array(z.string()), "sdkVersion": z.string().optional(), "environment": z.string(), "project": z.string().describe("Use 'projects' instead. This is only for backwards compatibility and contains the first project only."), "projects": z.array(z.string()).optional(), "encryptPayload": z.boolean(), "encryptionKey": z.string(), "includeVisualExperiments": z.boolean().optional(), "includeDraftExperiments": z.boolean().optional(), "includeExperimentNames": z.boolean().optional(), "includeRedirectExperiments": z.boolean().optional(), "key": z.string(), "proxyEnabled": z.boolean(), "proxyHost": z.string(), "proxySigningKey": z.string(), "sseEnabled": z.boolean().optional(), "hashSecureAttributes": z.boolean().optional(), "remoteEvalEnabled": z.boolean().optional(), "savedGroupReferencesEnabled": z.boolean().optional() }).strict()
 
@@ -147,7 +94,7 @@ export const toggleFeatureValidator = {
   paramsSchema: z.object({ "id": z.string() }).strict(),
 };
 
-export const listFeatureRevisionsValidator = {
+export const getFeatureRevisionsValidator = {
   bodySchema: z.never(),
   querySchema: z.object({ "status": z.enum(["draft","published","discarded","approved","changes-requested","pending-review"]).optional(), "limit": z.coerce.number().int().default(10), "offset": z.coerce.number().int().default(0) }).strict(),
   paramsSchema: z.object({ "id": z.string() }).strict(),

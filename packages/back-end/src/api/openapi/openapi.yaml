@@ -123,7 +123,7 @@ paths:
     $ref: "./paths/toggleFeature.yaml"
   /features/{id}/revisions:
     get:
-      $ref: "./paths/listFeatureRevisions.yaml"
+      $ref: "./paths/getFeatureRevisions.yaml"
   /features/{id}/revisions/{version}:
     get:
       $ref: "./paths/getFeatureRevision.yaml"

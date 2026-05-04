@@ -114,9 +114,6 @@ tags:
   - name: Environment_model
     x-displayName: Environment
     description: <SchemaDefinition schemaRef="#/components/schemas/Environment" />
-  - name: EventUser_model
-    x-displayName: EventUser
-    description: <SchemaDefinition schemaRef="#/components/schemas/EventUser" />
   - name: Experiment_model
     x-displayName: Experiment
     description: <SchemaDefinition schemaRef="#/components/schemas/Experiment" />
@@ -581,16 +578,14 @@ paths:
         - $ref: '#/components/parameters/revisionStatus'
         - $ref: '#/components/parameters/limit'
         - $ref: '#/components/parameters/offset'
-      summary: List revisions for a feature
+      summary: Get all revisions for a feature
       description: |
-        Returns the most recent revisions of a feature, including unpublished
-        drafts and revisions in review. Useful for inspecting an in-flight change
-        before it is published. The underlying store currently caps the result at
-        the 25 most recent revisions per feature; pagination is applied on top of
-        that window.
+        Returns the revisions of a feature, including unpublished drafts and
+        revisions in review. Useful for inspecting an in-flight change before it
+        is published.
       tags:
         - features
-      operationId: listFeatureRevisions
+      operationId: getFeatureRevisions
       x-codeSamples:
         - lang: cURL
           source: |
@@ -5039,27 +5034,22 @@ components:
     FeatureRevision:
       type: object
       required:
-        - featureId
-        - version
         - baseVersion
-        - status
-        - dateCreated
-        - dateUpdated
-        - datePublished
-        - createdBy
-        - publishedBy
+        - version
         - comment
-        - defaultValue
+        - date
+        - status
         - rules
       properties:
-        featureId:
-          type: string
-        version:
-          type: integer
-          description: Monotonically-increasing revision number for this feature
         baseVersion:
           type: integer
-          description: The version this revision was based on (the live version at the time of fork)
+        version:
+          type: integer
+        comment:
+          type: string
+        date:
+          type: string
+          format: date-time
         status:
           type: string
           enum:
@@ -5069,26 +5059,7 @@ components:
             - approved
             - changes-requested
             - pending-review
-        dateCreated:
-          type: string
-          format: date-time
-        dateUpdated:
-          type: string
-          format: date-time
-        datePublished:
-          type: string
-          format: date-time
-          nullable: true
-          description: 'When this revision was published to live, or null if not yet published'
-        createdBy:
-          allOf:
-            - $ref: '#/components/schemas/EventUser'
-          nullable: true
         publishedBy:
-          allOf:
-            - $ref: '#/components/schemas/EventUser'
-          nullable: true
-        comment:
           type: string
         defaultValue:
           type: string
@@ -5099,42 +5070,11 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/FeatureRule'
-          description: 'Rules per environment, keyed by environment name'
-    EventUser:
-      oneOf:
-        - type: object
-          required:
-            - type
-            - id
-            - email
-            - name
-          properties:
-            type:
-              type: string
-              enum:
-                - dashboard
-            id:
-              type: string
-            email:
-              type: string
-            name:
-              type: string
-        - type: object
-          required:
-            - type
-            - apiKey
-          properties:
-            type:
-              type: string
-              enum:
-                - api_key
-            apiKey:
-              type: string
-      discriminator:
-        propertyName: type
-        mapping:
-          dashboard: '#/components/schemas/EventUser/oneOf/0'
-          api_key: '#/components/schemas/EventUser/oneOf/1'
+        definitions:
+          type: object
+          additionalProperties:
+            type: string
+            description: 'A JSON stringified [FeatureDefinition](#tag/FeatureDefinition_model)'
     SdkConnection:
       type: object
       required:
@@ -6268,7 +6208,6 @@ x-tagGroups:
       - DataSource_model
       - Dimension_model
       - Environment_model
-      - EventUser_model
       - Experiment_model
       - ExperimentAnalysisSettings_model
       - ExperimentMetric_model

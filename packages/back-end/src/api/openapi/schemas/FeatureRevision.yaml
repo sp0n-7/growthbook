@@ -1,26 +1,21 @@
 type: object
 required:
-  - featureId
-  - version
   - baseVersion
-  - status
-  - dateCreated
-  - dateUpdated
-  - datePublished
-  - createdBy
-  - publishedBy
+  - version
   - comment
-  - defaultValue
+  - date
+  - status
   - rules
 properties:
-  featureId:
-    type: string
-  version:
-    type: integer
-    description: Monotonically-increasing revision number for this feature
   baseVersion:
     type: integer
-    description: The version this revision was based on (the live version at the time of fork)
+  version:
+    type: integer
+  comment:
+    type: string
+  date:
+    type: string
+    format: date-time
   status:
     type: string
     enum:
@@ -30,26 +25,7 @@ properties:
       - approved
       - changes-requested
       - pending-review
-  dateCreated:
-    type: string
-    format: date-time
-  dateUpdated:
-    type: string
-    format: date-time
-  datePublished:
-    type: string
-    format: date-time
-    nullable: true
-    description: When this revision was published to live, or null if not yet published
-  createdBy:
-    allOf:
-      - $ref: "./EventUser.yaml"
-    nullable: true
   publishedBy:
-    allOf:
-      - $ref: "./EventUser.yaml"
-    nullable: true
-  comment:
     type: string
   defaultValue:
     type: string
@@ -60,4 +36,8 @@ properties:
       type: array
       items:
         $ref: "./FeatureRule.yaml"
-    description: Rules per environment, keyed by environment name
+  definitions:
+    type: object
+    additionalProperties:
+      type: string
+      description: "A JSON stringified [FeatureDefinition](#tag/FeatureDefinition_model)"

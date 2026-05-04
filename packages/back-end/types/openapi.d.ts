@@ -35,14 +35,12 @@ export interface paths {
   };
   "/features/{id}/revisions": {
     /**
-     * List revisions for a feature 
-     * @description Returns the most recent revisions of a feature, including unpublished
-     * drafts and revisions in review. Useful for inspecting an in-flight change
-     * before it is published. The underlying store currently caps the result at
-     * the 25 most recent revisions per feature; pagination is applied on top of
-     * that window.
+     * Get all revisions for a feature 
+     * @description Returns the revisions of a feature, including unpublished drafts and
+     * revisions in review. Useful for inspecting an in-flight change before it
+     * is published.
      */
-    get: operations["listFeatureRevisions"];
+    get: operations["getFeatureRevisions"];
   };
   "/features/{id}/revisions/{version}": {
     /**
@@ -920,48 +918,16 @@ export interface components {
       experimentId: string;
     };
     FeatureRevision: {
-      featureId: string;
-      /** @description Monotonically-increasing revision number for this feature */
-      version: number;
-      /** @description The version this revision was based on (the live version at the time of fork) */
       baseVersion: number;
+      version: number;
+      comment: string;
+      /** Format: date-time */
+      date: string;
       /** @enum {string} */
       status: "draft" | "published" | "discarded" | "approved" | "changes-requested" | "pending-review";
-      /** Format: date-time */
-      dateCreated: string;
-      /** Format: date-time */
-      dateUpdated: string;
-      /**
-       * Format: date-time 
-       * @description When this revision was published to live, or null if not yet published
-       */
-      datePublished: string | null;
-      createdBy: OneOf<[{
-        /** @enum {string} */
-        type: "dashboard";
-        id: string;
-        email: string;
-        name: string;
-      }, {
-        /** @enum {string} */
-        type: "api_key";
-        apiKey: string;
-      }]> | null;
-      publishedBy: OneOf<[{
-        /** @enum {string} */
-        type: "dashboard";
-        id: string;
-        email: string;
-        name: string;
-      }, {
-        /** @enum {string} */
-        type: "api_key";
-        apiKey: string;
-      }]> | null;
-      comment: string;
+      publishedBy?: string;
       /** @description The serialized default value at this revision (JSON-encoded for `valueType=json`) */
-      defaultValue: string;
-      /** @description Rules per environment, keyed by environment name */
+      defaultValue?: string;
       rules: {
         [key: string]: ((({
             description: string;
@@ -1029,18 +995,10 @@ export interface components {
             experimentId: string;
           })[]) | undefined;
       };
+      definitions?: {
+        [key: string]: string | undefined;
+      };
     };
-    EventUser: OneOf<[{
-      /** @enum {string} */
-      type: "dashboard";
-      id: string;
-      email: string;
-      name: string;
-    }, {
-      /** @enum {string} */
-      type: "api_key";
-      apiKey: string;
-    }]>;
     SdkConnection: {
       id: string;
       /** Format: date-time */
@@ -2884,14 +2842,12 @@ export interface operations {
       };
     };
   };
-  listFeatureRevisions: {
+  getFeatureRevisions: {
     /**
-     * List revisions for a feature 
-     * @description Returns the most recent revisions of a feature, including unpublished
-     * drafts and revisions in review. Useful for inspecting an in-flight change
-     * before it is published. The underlying store currently caps the result at
-     * the 25 most recent revisions per feature; pagination is applied on top of
-     * that window.
+     * Get all revisions for a feature 
+     * @description Returns the revisions of a feature, including unpublished drafts and
+     * revisions in review. Useful for inspecting an in-flight change before it
+     * is published.
      */
     parameters: {
         /** @description Filter feature revisions by status (e.g. `draft`, `published`, `pending-review`, `approved`, `changes-requested`, `discarded`) */
@@ -2912,48 +2868,16 @@ export interface operations {
         content: {
           "application/json": ({
             revisions: ({
-                featureId: string;
-                /** @description Monotonically-increasing revision number for this feature */
-                version: number;
-                /** @description The version this revision was based on (the live version at the time of fork) */
                 baseVersion: number;
+                version: number;
+                comment: string;
+                /** Format: date-time */
+                date: string;
                 /** @enum {string} */
                 status: "draft" | "published" | "discarded" | "approved" | "changes-requested" | "pending-review";
-                /** Format: date-time */
-                dateCreated: string;
-                /** Format: date-time */
-                dateUpdated: string;
-                /**
-                 * Format: date-time 
-                 * @description When this revision was published to live, or null if not yet published
-                 */
-                datePublished: string | null;
-                createdBy: OneOf<[{
-                  /** @enum {string} */
-                  type: "dashboard";
-                  id: string;
-                  email: string;
-                  name: string;
-                }, {
-                  /** @enum {string} */
-                  type: "api_key";
-                  apiKey: string;
-                }]> | null;
-                publishedBy: OneOf<[{
-                  /** @enum {string} */
-                  type: "dashboard";
-                  id: string;
-                  email: string;
-                  name: string;
-                }, {
-                  /** @enum {string} */
-                  type: "api_key";
-                  apiKey: string;
-                }]> | null;
-                comment: string;
+                publishedBy?: string;
                 /** @description The serialized default value at this revision (JSON-encoded for `valueType=json`) */
-                defaultValue: string;
-                /** @description Rules per environment, keyed by environment name */
+                defaultValue?: string;
                 rules: {
                   [key: string]: ((({
                       description: string;
@@ -3021,6 +2945,9 @@ export interface operations {
                       experimentId: string;
                     })[]) | undefined;
                 };
+                definitions?: {
+                  [key: string]: string | undefined;
+                };
               })[];
           }) & {
             limit: number;
@@ -3055,48 +2982,16 @@ export interface operations {
         content: {
           "application/json": {
             revision: {
-              featureId: string;
-              /** @description Monotonically-increasing revision number for this feature */
-              version: number;
-              /** @description The version this revision was based on (the live version at the time of fork) */
               baseVersion: number;
+              version: number;
+              comment: string;
+              /** Format: date-time */
+              date: string;
               /** @enum {string} */
               status: "draft" | "published" | "discarded" | "approved" | "changes-requested" | "pending-review";
-              /** Format: date-time */
-              dateCreated: string;
-              /** Format: date-time */
-              dateUpdated: string;
-              /**
-               * Format: date-time 
-               * @description When this revision was published to live, or null if not yet published
-               */
-              datePublished: string | null;
-              createdBy: OneOf<[{
-                /** @enum {string} */
-                type: "dashboard";
-                id: string;
-                email: string;
-                name: string;
-              }, {
-                /** @enum {string} */
-                type: "api_key";
-                apiKey: string;
-              }]> | null;
-              publishedBy: OneOf<[{
-                /** @enum {string} */
-                type: "dashboard";
-                id: string;
-                email: string;
-                name: string;
-              }, {
-                /** @enum {string} */
-                type: "api_key";
-                apiKey: string;
-              }]> | null;
-              comment: string;
+              publishedBy?: string;
               /** @description The serialized default value at this revision (JSON-encoded for `valueType=json`) */
-              defaultValue: string;
-              /** @description Rules per environment, keyed by environment name */
+              defaultValue?: string;
               rules: {
                 [key: string]: ((({
                     description: string;
@@ -3163,6 +3058,9 @@ export interface operations {
                       })[];
                     experimentId: string;
                   })[]) | undefined;
+              };
+              definitions?: {
+                [key: string]: string | undefined;
               };
             };
           };
@@ -7391,7 +7289,6 @@ export type ApiFeatureRolloutRule = z.infer<typeof openApiValidators.apiFeatureR
 export type ApiFeatureExperimentRule = z.infer<typeof openApiValidators.apiFeatureExperimentRuleValidator>;
 export type ApiFeatureExperimentRefRule = z.infer<typeof openApiValidators.apiFeatureExperimentRefRuleValidator>;
 export type ApiFeatureRevision = z.infer<typeof openApiValidators.apiFeatureRevisionValidator>;
-export type ApiEventUser = z.infer<typeof openApiValidators.apiEventUserValidator>;
 export type ApiSdkConnection = z.infer<typeof openApiValidators.apiSdkConnectionValidator>;
 export type ApiExperiment = z.infer<typeof openApiValidators.apiExperimentValidator>;
 export type ApiExperimentMetric = z.infer<typeof openApiValidators.apiExperimentMetricValidator>;
@@ -7413,7 +7310,7 @@ export type PostFeatureResponse = operations["postFeature"]["responses"]["200"][
 export type GetFeatureResponse = operations["getFeature"]["responses"]["200"]["content"]["application/json"];
 export type UpdateFeatureResponse = operations["updateFeature"]["responses"]["200"]["content"]["application/json"];
 export type ToggleFeatureResponse = operations["toggleFeature"]["responses"]["200"]["content"]["application/json"];
-export type ListFeatureRevisionsResponse = operations["listFeatureRevisions"]["responses"]["200"]["content"]["application/json"];
+export type GetFeatureRevisionsResponse = operations["getFeatureRevisions"]["responses"]["200"]["content"]["application/json"];
 export type GetFeatureRevisionResponse = operations["getFeatureRevision"]["responses"]["200"]["content"]["application/json"];
 export type GetFeatureKeysResponse = operations["getFeatureKeys"]["responses"]["200"]["content"]["application/json"];
 export type ListProjectsResponse = operations["listProjects"]["responses"]["200"]["content"]["application/json"];

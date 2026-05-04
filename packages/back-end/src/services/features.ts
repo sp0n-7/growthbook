@@ -1666,23 +1666,22 @@ export function toApiFeatureRevisionInterface(
   revision: FeatureRevisionInterface
 ) {
   const rules: Record<string, ReturnType<typeof toApiFeatureRule>[]> = {};
-  Object.entries(revision.rules).forEach(([env, envRules]) => {
-    rules[env] = envRules.map(toApiFeatureRule);
+  Object.entries(revision.rules || {}).forEach(([env, envRules]) => {
+    if (Array.isArray(envRules)) {
+      rules[env] = envRules.map(toApiFeatureRule);
+    }
   });
 
   return {
-    featureId: revision.featureId,
-    version: revision.version,
     baseVersion: revision.baseVersion,
-    status: revision.status,
-    dateCreated: revision.dateCreated.toISOString(),
-    dateUpdated: revision.dateUpdated.toISOString(),
-    datePublished: revision.datePublished
-      ? revision.datePublished.toISOString()
-      : null,
-    createdBy: revision.createdBy,
-    publishedBy: revision.publishedBy,
+    version: revision.version,
     comment: revision.comment,
+    date: revision.dateUpdated.toISOString(),
+    status: revision.status,
+    publishedBy:
+      revision.publishedBy && revision.publishedBy.type === "dashboard"
+        ? revision.publishedBy.email || revision.publishedBy.name
+        : "",
     defaultValue: revision.defaultValue,
     rules,
   };
