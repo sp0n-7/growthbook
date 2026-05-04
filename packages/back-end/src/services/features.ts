@@ -1661,3 +1661,44 @@ function mapNullable<T, R>(
   if (value === undefined) return undefined;
   return fn(value);
 }
+
+export function toApiFeatureRevisionInterface(
+  revision: FeatureRevisionInterface
+) {
+  const rules: Record<string, ReturnType<typeof toApiFeatureRule>[]> = {};
+  Object.entries(revision.rules || {}).forEach(([env, envRules]) => {
+    if (Array.isArray(envRules)) {
+      rules[env] = envRules.map(toApiFeatureRule);
+    }
+  });
+
+  return {
+    baseVersion: revision.baseVersion,
+    version: revision.version,
+    comment: revision.comment,
+    date: revision.dateUpdated.toISOString(),
+    status: revision.status,
+    publishedBy:
+      revision.publishedBy && revision.publishedBy.type === "dashboard"
+        ? revision.publishedBy.email || revision.publishedBy.name
+        : "",
+    defaultValue: revision.defaultValue,
+    rules,
+  };
+}
+
+function toApiFeatureRule(rule: FeatureRule) {
+  return {
+    ...rule,
+    coverage:
+      rule.type === "rollout" || rule.type === "experiment"
+        ? rule.coverage ?? 1
+        : 1,
+    condition: rule.condition || "",
+    savedGroupTargeting: (rule.savedGroups || []).map((s) => ({
+      matchType: s.match,
+      savedGroups: s.ids,
+    })),
+    enabled: !!rule.enabled,
+  };
+}

@@ -26,6 +26,8 @@ FeatureExperimentRule:
   $ref: "./FeatureExperimentRule.yaml"
 FeatureExperimentRefRule:
   $ref: "./FeatureExperimentRefRule.yaml"
+FeatureRevision:
+  $ref: "./FeatureRevision.yaml"
 SdkConnection:
   $ref: "./SdkConnection.yaml"
 Experiment:

@@ -1,0 +1,28 @@
+parameters:
+  - $ref: "../parameters.yaml#/id"
+  - $ref: "../parameters.yaml#/revisionVersion"
+summary: Get a single feature revision by version
+description: |
+  Returns the full contents of one revision (default value, rules,
+  metadata) for the given feature. Useful for fetching a draft or
+  in-review revision so you can diff it against the live version returned
+  by `GET /features/{id}`.
+tags:
+  - features
+operationId: getFeatureRevision
+x-codeSamples:
+  - lang: "cURL"
+    source: |
+      curl https://api.growthbook.io/api/v1/features/my_feature/revisions/7 \
+        -u secret_abc123DEF456:
+responses:
+  "200":
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - revision
+          properties:
+            revision:
+              $ref: "../schemas/FeatureRevision.yaml"

@@ -1,0 +1,33 @@
+parameters:
+  - $ref: "../parameters.yaml#/id"
+  - $ref: "../parameters.yaml#/revisionStatus"
+  - $ref: "../parameters.yaml#/limit"
+  - $ref: "../parameters.yaml#/offset"
+summary: Get all revisions for a feature
+description: |
+  Returns the revisions of a feature, including unpublished drafts and
+  revisions in review. Useful for inspecting an in-flight change before it
+  is published.
+tags:
+  - features
+operationId: getFeatureRevisions
+x-codeSamples:
+  - lang: "cURL"
+    source: |
+      curl https://api.growthbook.io/api/v1/features/my_feature/revisions?status=draft \
+        -u secret_abc123DEF456:
+responses:
+  "200":
+    content:
+      application/json:
+        schema:
+          allOf:
+            - type: object
+              required:
+                - revisions
+              properties:
+                revisions:
+                  type: array
+                  items:
+                    $ref: "../schemas/FeatureRevision.yaml"
+            - $ref: "../schemas/PaginationFields.yaml"

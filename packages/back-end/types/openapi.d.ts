@@ -33,6 +33,25 @@ export interface paths {
       };
     };
   };
+  "/features/{id}/revisions": {
+    /**
+     * Get all revisions for a feature 
+     * @description Returns the revisions of a feature, including unpublished drafts and
+     * revisions in review. Useful for inspecting an in-flight change before it
+     * is published.
+     */
+    get: operations["getFeatureRevisions"];
+  };
+  "/features/{id}/revisions/{version}": {
+    /**
+     * Get a single feature revision by version 
+     * @description Returns the full contents of one revision (default value, rules,
+     * metadata) for the given feature. Useful for fetching a draft or
+     * in-review revision so you can diff it against the live version returned
+     * by `GET /features/{id}`.
+     */
+    get: operations["getFeatureRevision"];
+  };
   "/feature-keys": {
     /** Get list of feature keys */
     get: operations["getFeatureKeys"];
@@ -898,6 +917,88 @@ export interface components {
         })[];
       experimentId: string;
     };
+    FeatureRevision: {
+      baseVersion: number;
+      version: number;
+      comment: string;
+      /** Format: date-time */
+      date: string;
+      /** @enum {string} */
+      status: "draft" | "published" | "discarded" | "approved" | "changes-requested" | "pending-review";
+      publishedBy?: string;
+      /** @description The serialized default value at this revision (JSON-encoded for `valueType=json`) */
+      defaultValue?: string;
+      rules: {
+        [key: string]: ((({
+            description: string;
+            condition: string;
+            savedGroupTargeting?: ({
+                /** @enum {string} */
+                matchType: "all" | "any" | "none";
+                savedGroups: (string)[];
+              })[];
+            id: string;
+            enabled: boolean;
+            /** @enum {string} */
+            type: "force";
+            value: string;
+          }) | ({
+            description: string;
+            condition: string;
+            savedGroupTargeting?: ({
+                /** @enum {string} */
+                matchType: "all" | "any" | "none";
+                savedGroups: (string)[];
+              })[];
+            id: string;
+            enabled: boolean;
+            /** @enum {string} */
+            type: "rollout";
+            value: string;
+            coverage: number;
+            hashAttribute: string;
+          }) | {
+            description: string;
+            condition: string;
+            id: string;
+            enabled: boolean;
+            /** @enum {string} */
+            type: "experiment";
+            trackingKey?: string;
+            hashAttribute?: string;
+            fallbackAttribute?: string;
+            disableStickyBucketing?: any;
+            bucketVersion?: number;
+            minBucketVersion?: number;
+            namespace?: {
+              enabled: boolean;
+              name: string;
+              range: (number)[];
+            };
+            coverage?: number;
+            value?: ({
+                value: string;
+                weight: number;
+                name?: string;
+              })[];
+          } | {
+            description: string;
+            id: string;
+            enabled: boolean;
+            /** @enum {string} */
+            type: "experiment-ref";
+            condition?: string;
+            variations: ({
+                value: string;
+                variationId: string;
+              })[];
+            experimentId: string;
+          })[]) | undefined;
+      };
+      definitions?: {
+        [key: string]: string | undefined;
+      };
+    };
     SdkConnection: {
       id: string;
       /** Format: date-time */
@@ -1490,6 +1591,10 @@ export interface components {
     userEmail: string;
     /** @description Name of the global role */
     globalRole: string;
+    /** @description The version number of the requested feature revision */
+    revisionVersion: number;
+    /** @description Filter feature revisions by status (e.g. `draft`, `published`, `pending-review`, `approved`, `changes-requested`, `discarded`) */
+    revisionStatus: "draft" | "published" | "discarded" | "approved" | "changes-requested" | "pending-review";
   };
   requestBodies: never;
   headers: never;
@@ -2731,6 +2836,232 @@ export interface operations {
                 createdBy: string;
                 createdByEmail: string;
               } | null;
+            };
+          };
+        };
+      };
+    };
+  };
+  getFeatureRevisions: {
+    /**
+     * Get all revisions for a feature 
+     * @description Returns the revisions of a feature, including unpublished drafts and
+     * revisions in review. Useful for inspecting an in-flight change before it
+     * is published.
+     */
+    parameters: {
+        /** @description Filter feature revisions by status (e.g. `draft`, `published`, `pending-review`, `approved`, `changes-requested`, `discarded`) */
+        /** @description The number of items to return */
+        /** @description How many items to skip (use in conjunction with limit for pagination) */
+      query: {
+        status?: "draft" | "published" | "discarded" | "approved" | "changes-requested" | "pending-review";
+        limit?: number;
+        offset?: number;
+      };
+        /** @description The id of the requested resource */
+      path: {
+        id: string;
+      };
+    };
+    responses: {
+      200: {
+        content: {
+          "application/json": ({
+            revisions: ({
+                baseVersion: number;
+                version: number;
+                comment: string;
+                /** Format: date-time */
+                date: string;
+                /** @enum {string} */
+                status: "draft" | "published" | "discarded" | "approved" | "changes-requested" | "pending-review";
+                publishedBy?: string;
+                /** @description The serialized default value at this revision (JSON-encoded for `valueType=json`) */
+                defaultValue?: string;
+                rules: {
+                  [key: string]: ((({
+                      description: string;
+                      condition: string;
+                      savedGroupTargeting?: ({
+                          /** @enum {string} */
+                          matchType: "all" | "any" | "none";
+                          savedGroups: (string)[];
+                        })[];
+                      id: string;
+                      enabled: boolean;
+                      /** @enum {string} */
+                      type: "force";
+                      value: string;
+                    }) | ({
+                      description: string;
+                      condition: string;
+                      savedGroupTargeting?: ({
+                          /** @enum {string} */
+                          matchType: "all" | "any" | "none";
+                          savedGroups: (string)[];
+                        })[];
+                      id: string;
+                      enabled: boolean;
+                      /** @enum {string} */
+                      type: "rollout";
+                      value: string;
+                      coverage: number;
+                      hashAttribute: string;
+                    }) | {
+                      description: string;
+                      condition: string;
+                      id: string;
+                      enabled: boolean;
+                      /** @enum {string} */
+                      type: "experiment";
+                      trackingKey?: string;
+                      hashAttribute?: string;
+                      fallbackAttribute?: string;
+                      disableStickyBucketing?: any;
+                      bucketVersion?: number;
+                      minBucketVersion?: number;
+                      namespace?: {
+                        enabled: boolean;
+                        name: string;
+                        range: (number)[];
+                      };
+                      coverage?: number;
+                      value?: ({
+                          value: string;
+                          weight: number;
+                          name?: string;
+                        })[];
+                    } | {
+                      description: string;
+                      id: string;
+                      enabled: boolean;
+                      /** @enum {string} */
+                      type: "experiment-ref";
+                      condition?: string;
+                      variations: ({
+                          value: string;
+                          variationId: string;
+                        })[];
+                      experimentId: string;
+                    })[]) | undefined;
+                };
+                definitions?: {
+                  [key: string]: string | undefined;
+                };
+              })[];
+          }) & {
+            limit: number;
+            offset: number;
+            count: number;
+            total: number;
+            hasMore: boolean;
+            nextOffset: OneOf<[number, null]>;
+          };
+        };
+      };
+    };
+  };
+  getFeatureRevision: {
+    /**
+     * Get a single feature revision by version 
+     * @description Returns the full contents of one revision (default value, rules,
+     * metadata) for the given feature. Useful for fetching a draft or
+     * in-review revision so you can diff it against the live version returned
+     * by `GET /features/{id}`.
+     */
+    parameters: {
+        /** @description The id of the requested resource */
+        /** @description The version number of the requested feature revision */
+      path: {
+        id: string;
+        version: number;
+      };
+    };
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            revision: {
+              baseVersion: number;
+              version: number;
+              comment: string;
+              /** Format: date-time */
+              date: string;
+              /** @enum {string} */
+              status: "draft" | "published" | "discarded" | "approved" | "changes-requested" | "pending-review";
+              publishedBy?: string;
+              /** @description The serialized default value at this revision (JSON-encoded for `valueType=json`) */
+              defaultValue?: string;
+              rules: {
+                [key: string]: ((({
+                    description: string;
+                    condition: string;
+                    savedGroupTargeting?: ({
+                        /** @enum {string} */
+                        matchType: "all" | "any" | "none";
+                        savedGroups: (string)[];
+                      })[];
+                    id: string;
+                    enabled: boolean;
+                    /** @enum {string} */
+                    type: "force";
+                    value: string;
+                  }) | ({
+                    description: string;
+                    condition: string;
+                    savedGroupTargeting?: ({
+                        /** @enum {string} */
+                        matchType: "all" | "any" | "none";
+                        savedGroups: (string)[];
+                      })[];
+                    id: string;
+                    enabled: boolean;
+                    /** @enum {string} */
+                    type: "rollout";
+                    value: string;
+                    coverage: number;
+                    hashAttribute: string;
+                  }) | {
+                    description: string;
+                    condition: string;
+                    id: string;
+                    enabled: boolean;
+                    /** @enum {string} */
+                    type: "experiment";
+                    trackingKey?: string;
+                    hashAttribute?: string;
+                    fallbackAttribute?: string;
+                    disableStickyBucketing?: any;
+                    bucketVersion?: number;
+                    minBucketVersion?: number;
+                    namespace?: {
+                      enabled: boolean;
+                      name: string;
+                      range: (number)[];
+                    };
+                    coverage?: number;
+                    value?: ({
+                        value: string;
+                        weight: number;
+                        name?: string;
+                      })[];
+                  } | {
+                    description: string;
+                    id: string;
+                    enabled: boolean;
+                    /** @enum {string} */
+                    type: "experiment-ref";
+                    condition?: string;
+                    variations: ({
+                        value: string;
+                        variationId: string;
+                      })[];
+                    experimentId: string;
+                  })[]) | undefined;
+              };
+              definitions?: {
+                [key: string]: string | undefined;
+              };
             };
           };
         };
@@ -6957,6 +7288,7 @@ export type ApiFeatureForceRule = z.infer<typeof openApiValidators.apiFeatureFor
 export type ApiFeatureRolloutRule = z.infer<typeof openApiValidators.apiFeatureRolloutRuleValidator>;
 export type ApiFeatureExperimentRule = z.infer<typeof openApiValidators.apiFeatureExperimentRuleValidator>;
 export type ApiFeatureExperimentRefRule = z.infer<typeof openApiValidators.apiFeatureExperimentRefRuleValidator>;
+export type ApiFeatureRevision = z.infer<typeof openApiValidators.apiFeatureRevisionValidator>;
 export type ApiSdkConnection = z.infer<typeof openApiValidators.apiSdkConnectionValidator>;
 export type ApiExperiment = z.infer<typeof openApiValidators.apiExperimentValidator>;
 export type ApiExperimentMetric = z.infer<typeof openApiValidators.apiExperimentMetricValidator>;
@@ -6978,6 +7310,8 @@ export type PostFeatureResponse = operations["postFeature"]["responses"]["200"][
 export type GetFeatureResponse = operations["getFeature"]["responses"]["200"]["content"]["application/json"];
 export type UpdateFeatureResponse = operations["updateFeature"]["responses"]["200"]["content"]["application/json"];
 export type ToggleFeatureResponse = operations["toggleFeature"]["responses"]["200"]["content"]["application/json"];
+export type GetFeatureRevisionsResponse = operations["getFeatureRevisions"]["responses"]["200"]["content"]["application/json"];
+export type GetFeatureRevisionResponse = operations["getFeatureRevision"]["responses"]["200"]["content"]["application/json"];
 export type GetFeatureKeysResponse = operations["getFeatureKeys"]["responses"]["200"]["content"]["application/json"];
 export type ListProjectsResponse = operations["listProjects"]["responses"]["200"]["content"]["application/json"];
 export type PostProjectResponse = operations["postProject"]["responses"]["200"]["content"]["application/json"];

@@ -96,6 +96,43 @@ export async function getRevisions(
   });
 }
 
+export async function countDocuments(
+  organization: string,
+  featureId: string
+): Promise<number> {
+  return FeatureRevisionModel.countDocuments({
+    organization,
+    featureId,
+  });
+}
+
+export async function getFeatureRevisionsByStatus({
+  organization,
+  featureId,
+  status,
+  limit = 10,
+  offset = 0,
+  sort = "desc",
+}: {
+  organization: string;
+  featureId: string;
+  status?: string;
+  limit?: number;
+  offset?: number;
+  sort?: "asc" | "desc";
+}): Promise<FeatureRevisionInterface[]> {
+  const docs = await FeatureRevisionModel.find({
+    organization,
+    featureId,
+    ...(status ? { status } : {}),
+  })
+    .select("-log")
+    .sort({ version: sort === "desc" ? -1 : 1 })
+    .skip(offset)
+    .limit(limit);
+  return docs.map(toInterface);
+}
+
 export async function hasDraft(
   organization: string,
   feature: FeatureInterface,
