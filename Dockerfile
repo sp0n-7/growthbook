@@ -42,6 +42,7 @@ RUN yarn install --frozen-lockfile --ignore-optional
 RUN yarn postinstall
 # Build the app and do a clean install with only production dependencies
 COPY packages ./packages
+ENV NODE_OPTIONS=--max-old-space-size=4096
 RUN \
   yarn build \
   && rm -rf node_modules \
