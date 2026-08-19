@@ -74,7 +74,7 @@ export class LocalAuthConnection implements AuthConnection {
     const refreshToken = RefreshTokenCookie.getValue(req);
     if (refreshToken) {
       await AuthRefreshModel.deleteOne({
-        token: refreshToken,
+        token: { $eq: String(refreshToken) },
       });
     }
     return "";

@@ -38,7 +38,7 @@ export async function getSSOConnectionById(
   id: string
 ): Promise<null | SSOConnectionInterface> {
   if (!id) return null;
-  const doc = await SSOConnectionModel.findOne({ id });
+  const doc = await SSOConnectionModel.findOne({ id: { $eq: String(id) } });
 
   return doc ? toInterface(doc) : null;
 }
@@ -55,7 +55,7 @@ export async function getSSOConnectionByEmailDomain(
 ): Promise<null | SSOConnectionInterface> {
   if (!emailDomain) return null;
   const doc = await SSOConnectionModel.findOne({
-    emailDomains: emailDomain,
+    emailDomains: { $eq: String(emailDomain) },
   });
 
   return doc ? toInterface(doc) : null;
