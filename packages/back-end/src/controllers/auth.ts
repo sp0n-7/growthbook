@@ -327,10 +327,17 @@ export async function getResetPassword(
   });
 }
 
-export async function getSSOConnectionFromDomain(req: Request, res: Response) {
+export async function getSSOConnectionFromDomain(
+  // eslint-disable-next-line
+  req: Request<any, any, { domain: unknown }>,
+  res: Response
+) {
   const { domain } = req.body;
+  if (!domain || typeof domain !== "string") {
+    throw new Error("Invalid domain");
+  }
 
-  const sso = await getSSOConnectionByEmailDomain(domain as string);
+  const sso = await getSSOConnectionByEmailDomain(domain);
 
   if (!sso?.id) {
     throw new Error(`Unknown SSO Connection for *@${domain}`);
