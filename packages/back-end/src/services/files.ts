@@ -24,6 +24,23 @@ export function getUploadsDir() {
   return path.join(__dirname, "..", "..", "uploads");
 }
 
+// Join an upload key onto the uploads dir, rejecting anything that escapes it.
+// The separator-aware boundary check (vs. a bare prefix match) is what stops a
+// sibling like "uploads-evil" or a "../" traversal from slipping through.
+export function resolveUploadPath(key: string): string {
+  const rootDirectory = getUploadsDir();
+  const fullPath = path.join(rootDirectory, key);
+  if (
+    fullPath !== rootDirectory &&
+    !fullPath.startsWith(rootDirectory + path.sep)
+  ) {
+    throw new Error(
+      "Error: Path must not escape out of the 'uploads' directory."
+    );
+  }
+  return fullPath;
+}
+
 export async function uploadFile(
   filePath: string,
   contentType: string,
@@ -54,16 +71,7 @@ export async function uploadFile(
       .save(contents, { contentType: contentType });
     fileURL = GCS_DOMAIN + (GCS_DOMAIN.endsWith("/") ? "" : "/") + filePath;
   } else {
-    const rootDirectory = getUploadsDir();
-    const fullPath = path.join(rootDirectory, filePath);
-
-    // Prevent directory traversal
-    if (fullPath.indexOf(rootDirectory) !== 0) {
-      throw new Error(
-        "Error: Path must not escape out of the 'uploads' directory."
-      );
-    }
-
+    const fullPath = resolveUploadPath(filePath);
     const dir = path.dirname(fullPath);
     await fs.promises.mkdir(dir, { recursive: true });
     await fs.promises.writeFile(fullPath, contents);
@@ -93,15 +101,7 @@ export function getImageData(filePath: string) {
     return readableStream;
   } else {
     // local image
-    const rootDirectory = getUploadsDir();
-    const fullPath = path.join(rootDirectory, filePath);
-
-    // Prevent directory traversal
-    if (fullPath.indexOf(rootDirectory) !== 0) {
-      throw new Error(
-        "Error: Path must not escape out of the 'uploads' directory."
-      );
-    }
+    const fullPath = resolveUploadPath(filePath);
 
     if (!fs.existsSync(fullPath)) {
       throw new Error("File not found");

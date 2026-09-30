@@ -1,5 +1,4 @@
 import type { Response } from "express";
-import fetch from "node-fetch";
 import { PrivateApiErrorResponse } from "../../../types/api";
 import {
   EventWebHookInterface,
@@ -23,6 +22,7 @@ import {
   EventWebHookLogInterface,
 } from "../../../types/event-webhook-log";
 import { NotificationEventName } from "../../events/base-types";
+import { cancellableFetch } from "../../util/http.util";
 
 // region GET /event-webhooks
 
@@ -330,18 +330,31 @@ export const testWebHookParams = async (
   req: PostTestWebHooksParamsRequest,
   res: Response<{ success: boolean } | PrivateApiErrorResponse>
 ) => {
-  try {
-    const response = await fetch(req.body.url, {
-      method: req.body.method,
-      body: JSON.stringify(testParamsPayload(req.body.name)),
-      headers: { "Content-Type": "application/json" },
-    });
+  const context = getContextFromReq(req);
 
-    if (response.ok) return res.json({ success: true });
+  if (!context.permissions.canCreateEventWebhook()) {
+    context.permissions.throwPermissionError();
+  }
+
+  try {
+    const { responseWithoutBody } = await cancellableFetch(
+      req.body.url,
+      {
+        method: req.body.method,
+        body: JSON.stringify(testParamsPayload(req.body.name)),
+        headers: { "Content-Type": "application/json" },
+      },
+      {
+        maxTimeMs: 30000,
+        maxContentSize: 1000,
+      }
+    );
+
+    if (responseWithoutBody.ok) return res.json({ success: true });
 
     return res.status(403).json({
       status: 403,
-      message: `Request failed: ${response.status} - ${response.statusText}`,
+      message: `Request failed: ${responseWithoutBody.status} - ${responseWithoutBody.statusText}`,
     });
   } catch (e) {
     return res

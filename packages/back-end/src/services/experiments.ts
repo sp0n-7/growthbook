@@ -17,6 +17,7 @@ import { getScopedSettings } from "shared/settings";
 import {
   DRAFT_REVISION_STATUSES,
   generateVariationId,
+  getAffectedEnvsForExperiment,
   getMatchingRules,
   getSnapshotAnalysis,
   isAnalysisAllowed,
@@ -2107,6 +2108,51 @@ export function updateExperimentApiPayloadToInterface(
       : {}),
     dateUpdated: new Date(),
   };
+}
+
+// Only some experiment fields reach SDK payloads. A change that touches any of
+// them needs run-experiments permission in the environments the experiment
+// affects (on both the current project and, if it moves, the new one).
+// Shared by POST /experiment/:id and POST /api/v1/experiments/:id so the two
+// agree on which fields count.
+const PAYLOAD_AFFECTING_EXPERIMENT_FIELDS: (keyof ExperimentInterface)[] = [
+  "phases",
+  "variations",
+  "project",
+  "name",
+  "trackingKey",
+  "archived",
+  "status",
+  "releasedVariationId",
+  "excludeFromPayload",
+  // Bucketing fields. The REST route accepts these and they end up in the SDK
+  // payload. The dashboard edits them on POST /experiment/:id/targeting, which
+  // always checks this.
+  "hashAttribute",
+  "hashVersion",
+];
+export function assertCanRunExperimentChanges(
+  context: ReqContext | ApiReqContext,
+  experiment: ExperimentInterface,
+  changes: Partial<ExperimentInterface>
+): void {
+  if (!PAYLOAD_AFFECTING_EXPERIMENT_FIELDS.some((key) => key in changes)) {
+    return;
+  }
+
+  const envs = getAffectedEnvsForExperiment({ experiment });
+  if (envs.length > 0) {
+    const projects = [experiment.project || undefined];
+    if ("project" in changes) {
+      projects.push(changes.project || undefined);
+    }
+    // check user's permission on existing experiment project and the updated project, if changed
+    projects.forEach((project) => {
+      if (!context.permissions.canRunExperiment({ project }, envs)) {
+        context.permissions.throwPermissionError();
+      }
+    });
+  }
 }
 
 export async function getSettingsForSnapshotMetrics(

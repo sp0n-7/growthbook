@@ -6,6 +6,7 @@ import {
   getExperimentByTrackingKey,
 } from "../../models/ExperimentModel";
 import {
+  assertCanRunExperimentChanges,
   toExperimentApiInterface,
   updateExperimentApiPayloadToInterface,
 } from "../../services/experiments";
@@ -61,10 +62,17 @@ export const updateExperiment = createApiRequestHandler(
       }
     }
 
+    const changes = updateExperimentApiPayloadToInterface(req.body, experiment);
+
+    // canUpdateExperiment (above) is the analysis-level check. Fields that reach
+    // SDK payloads additionally need run-experiments permission, the same rule
+    // the dashboard's POST /experiment/:id applies.
+    assertCanRunExperimentChanges(req.context, experiment, changes);
+
     const updatedExperiment = await updateExperimentToDb({
       context: req.context,
       experiment: experiment,
-      changes: updateExperimentApiPayloadToInterface(req.body, experiment),
+      changes,
     });
 
     if (updatedExperiment === null) {

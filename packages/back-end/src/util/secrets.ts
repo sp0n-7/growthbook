@@ -258,3 +258,8 @@ export const USE_PROXY =
 
 export const SUPERADMIN_DEFAULT_ROLE =
   process.env.SUPERADMIN_DEFAULT_ROLE ?? "readonly";
+
+// Note: the Visual Editor relies on the information in this path, so disabling it will prevent some features from working correctly.
+export const DISABLE_API_ROOT_PATH = stringToBoolean(
+  process.env.DISABLE_API_ROOT_PATH
+);

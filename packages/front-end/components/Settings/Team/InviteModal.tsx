@@ -234,7 +234,10 @@ const InviteModal: FC<{ mutate: () => void; close: () => void }> = ({
               const parsedEmails: string[] = [];
               emails.forEach((em) => {
                 parsedEmails.push(
-                  ...em.split(/[\s,]/g).filter((e) => e.trim().length > 0)
+                  ...em
+                    .split(/[\s,;]/g)
+                    .map((e) => e.trim())
+                    .filter((e) => e.length > 0)
                 );
               });
               // dedup:

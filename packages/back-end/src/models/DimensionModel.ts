@@ -2,6 +2,9 @@ import mongoose from "mongoose";
 import { ApiDimension } from "../../types/openapi";
 import { DimensionInterface } from "../../types/dimension";
 import { getConfigDimensions, usingFileConfig } from "../init/config";
+import { ReqContext } from "../../types/organization";
+import { ApiReqContext } from "../../types/api";
+import { getDataSourceById } from "./DataSourceModel";
 
 const dimensionSchema = new mongoose.Schema({
   id: String,
@@ -51,6 +54,16 @@ export async function findDimensionById(id: string, organization: string) {
   const doc = await DimensionModel.findOne({ id, organization });
 
   return doc ? toInterface(doc) : null;
+}
+
+// A dimension inherits project access from its datasource, so access is granted
+// only when that datasource is readable. A dimension whose datasource is
+// inaccessible or no longer exists is treated as not found.
+export async function hasDimensionDatasourceAccess(
+  context: ReqContext | ApiReqContext,
+  dimension: DimensionInterface
+): Promise<boolean> {
+  return !!(await getDataSourceById(context, dimension.datasource));
 }
 
 export async function findDimensionsByDataSource(
