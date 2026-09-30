@@ -282,7 +282,8 @@ export async function getHistory(
   req: AuthRequest<null, { type: string; id: string }>,
   res: Response
 ) {
-  const { org } = getContextFromReq(req);
+  const context = getContextFromReq(req);
+  const { org } = context;
   const { type, id } = req.params;
 
   if (!isValidAuditEntityType(type)) {
@@ -290,6 +291,11 @@ export async function getHistory(
       status: 400,
       message: `${type} is not a valid entity type. Possible entity types are: ${EntityType}`,
     });
+  }
+
+  // Organization audit entries include invite keys
+  if (type === "organization" && !context.permissions.canManageTeam()) {
+    context.permissions.throwPermissionError();
   }
 
   const events = await Promise.all([
