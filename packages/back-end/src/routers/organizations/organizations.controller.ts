@@ -168,8 +168,7 @@ export async function getDefinitions(req: AuthRequest, res: Response) {
     context.models.factMetrics.getAll(),
   ]);
 
-  // A dimension inherits project access from its datasource, so drop any whose
-  // datasource is inaccessible or no longer exists.
+  // Dimensions inherit project access from their datasource
   const readableDatasourceIds = new Set(datasources.map((ds) => ds.id));
   const visibleDimensions = dimensions.filter((dimension) =>
     readableDatasourceIds.has(dimension.datasource)

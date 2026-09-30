@@ -3,8 +3,6 @@ import jwt from "jsonwebtoken";
 import { LocalAuthConnection } from "../../../src/services/auth/LocalAuthConnection";
 import { JWT_SECRET } from "../../../src/util/secrets";
 
-// Covers the express-jwt v8 / jsonwebtoken v9 upgrade (upstream #5236): the
-// decoded token must still land on req.user, and bad tokens must be rejected.
 describe("LocalAuthConnection.middleware", () => {
   const claims = { email: "user@example.com" };
   const signOpts: jwt.SignOptions = {

@@ -56,9 +56,7 @@ export async function findDimensionById(id: string, organization: string) {
   return doc ? toInterface(doc) : null;
 }
 
-// A dimension inherits project access from its datasource, so access is granted
-// only when that datasource is readable. A dimension whose datasource is
-// inaccessible or no longer exists is treated as not found.
+// Dimensions inherit project access from their datasource
 export async function hasDimensionDatasourceAccess(
   context: ReqContext | ApiReqContext,
   dimension: DimensionInterface

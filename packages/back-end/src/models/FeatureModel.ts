@@ -284,10 +284,8 @@ export async function getFeaturesByIds(
   );
 }
 
-// Returns id -> project for every feature that exists in the org, regardless of
-// the caller's read permission. Intended for permission decisions where missing
-// (inaccessible) and non-existent features must be distinguished. Do not use it
-// to return feature data to the caller.
+// Ignores read access. Only use it for permission checks, never to return
+// feature data to the caller.
 export async function getFeatureProjectsByIds(
   context: ReqContext | ApiReqContext,
   ids: string[]

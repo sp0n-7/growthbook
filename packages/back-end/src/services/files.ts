@@ -24,9 +24,8 @@ export function getUploadsDir() {
   return path.join(__dirname, "..", "..", "uploads");
 }
 
-// Join an upload key onto the uploads dir, rejecting anything that escapes it.
-// The separator-aware boundary check (vs. a bare prefix match) is what stops a
-// sibling like "uploads-evil" or a "../" traversal from slipping through.
+// Separator-aware check so a sibling like "uploads-evil" can't pass a bare
+// prefix match.
 export function resolveUploadPath(key: string): string {
   const rootDirectory = getUploadsDir();
   const fullPath = path.join(rootDirectory, key);

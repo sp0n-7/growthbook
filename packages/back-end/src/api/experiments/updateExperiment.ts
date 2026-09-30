@@ -64,9 +64,7 @@ export const updateExperiment = createApiRequestHandler(
 
     const changes = updateExperimentApiPayloadToInterface(req.body, experiment);
 
-    // canUpdateExperiment (above) is the analysis-level check. Fields that reach
-    // SDK payloads additionally need run-experiments permission, the same rule
-    // the dashboard's POST /experiment/:id applies.
+    // Payload-affecting fields also need run permission, as in the dashboard route
     assertCanRunExperimentChanges(req.context, experiment, changes);
 
     const updatedExperiment = await updateExperimentToDb({

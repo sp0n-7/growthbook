@@ -171,9 +171,7 @@ function mergeUserAndTeamPermissions(
   ]);
 
   // Loop through that list of projects and merge the user and team permissions.
-  // An explicitly-set project role takes precedence over a global role, so a
-  // principal with no project role contributes nothing (not its global role)
-  // rather than letting its global permissions leak into the project.
+  // An explicit project role takes precedence over a global role.
   const noProjectRole = (): UserPermission => ({
     limitAccessByEnvironment: false,
     environments: [],

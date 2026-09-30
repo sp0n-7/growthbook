@@ -2110,11 +2110,7 @@ export function updateExperimentApiPayloadToInterface(
   };
 }
 
-// Only some experiment fields reach SDK payloads. A change that touches any of
-// them needs run-experiments permission in the environments the experiment
-// affects (on both the current project and, if it moves, the new one).
-// Shared by POST /experiment/:id and POST /api/v1/experiments/:id so the two
-// agree on which fields count.
+// Shared by the dashboard and REST update routes so both gate the same fields
 const PAYLOAD_AFFECTING_EXPERIMENT_FIELDS: (keyof ExperimentInterface)[] = [
   "phases",
   "variations",
@@ -2125,9 +2121,7 @@ const PAYLOAD_AFFECTING_EXPERIMENT_FIELDS: (keyof ExperimentInterface)[] = [
   "status",
   "releasedVariationId",
   "excludeFromPayload",
-  // Bucketing fields. The REST route accepts these and they end up in the SDK
-  // payload. The dashboard edits them on POST /experiment/:id/targeting, which
-  // always checks this.
+  // Bucketing fields reach the SDK payload via the REST route
   "hashAttribute",
   "hashVersion",
 ];

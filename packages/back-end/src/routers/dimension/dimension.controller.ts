@@ -39,8 +39,7 @@ export const getDimensions = async (
   const context = getContextFromReq(req);
   const dimensions = await findDimensionsByOrganization(context.org.id);
 
-  // A dimension inherits project access from its datasource, so drop any whose
-  // datasource is inaccessible or no longer exists.
+  // Dimensions inherit project access from their datasource
   const readableDatasourceIds = new Set(
     (await getDataSourcesByOrganization(context)).map((ds) => ds.id)
   );

@@ -452,8 +452,7 @@ export async function acceptInvite(key: string, userId: string, email: string) {
     throw new Error("Could not find invitation with that key");
   }
 
-  // Ensure the invite was issued to the authenticated user's email; otherwise a
-  // leaked invite key would let any logged-in user join with the invited role.
+  // A leaked invite key must not let another user join with the invited role
   if (!email || email.toLowerCase() !== invite.email.toLowerCase()) {
     throw new Error("This invitation was sent to a different email address");
   }
@@ -510,8 +509,7 @@ export async function inviteUser({
     throw new Error(`Invalid email address: ${email}`);
   }
 
-  // User is already invited (legacy invites may have been stored with
-  // mixed case, so compare case-insensitively).
+  // Legacy invites may be stored with mixed case
   const existingInvite = organization.invites.find(
     (invite) => invite.email.toLowerCase() === email
   );
