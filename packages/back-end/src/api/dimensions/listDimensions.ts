@@ -3,6 +3,7 @@ import {
   findDimensionsByOrganization,
   toDimensionApiInterface,
 } from "../../models/DimensionModel";
+import { getDataSourcesByOrganization } from "../../models/DataSourceModel";
 import {
   applyFilter,
   applyPagination,
@@ -14,9 +15,15 @@ export const listDimensions = createApiRequestHandler(listDimensionsValidator)(
   async (req): Promise<ListDimensionsResponse> => {
     const dimensions = await findDimensionsByOrganization(req.organization.id);
 
+    // Dimensions inherit project access from their datasource
+    const readableDatasourceIds = new Set(
+      (await getDataSourcesByOrganization(req.context)).map((ds) => ds.id)
+    );
+
     // TODO: Move sorting/limiting to the database query for better performance
     const { filtered, returnFields } = applyPagination(
       dimensions
+        .filter((dimension) => readableDatasourceIds.has(dimension.datasource))
         .filter((dimension) =>
           applyFilter(req.query.datasourceId, dimension.datasource)
         )

@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { getImageData, uploadFile } from "../../services/files";
 import { AuthRequest } from "../../types/AuthRequest";
 import { getContextFromReq } from "../../services/organizations";
+import { getOrgScopedPath } from "./upload.util";
 
 const mimetypes: Record<string, string> = {
   "image/png": "png",
@@ -53,10 +54,8 @@ export async function putUpload(req: AuthRequest<Buffer>, res: Response) {
 export function getImage(req: AuthRequest<{ path: string }>, res: Response) {
   const { org } = getContextFromReq(req);
 
-  const path = req.path[0] === "/" ? req.path.substr(1) : req.path;
-
-  const orgFromPath = path.split("/")[0];
-  if (orgFromPath !== org.id) {
+  const path = getOrgScopedPath(req.path, org.id);
+  if (!path) {
     throw new Error("Invalid organization");
   }
 

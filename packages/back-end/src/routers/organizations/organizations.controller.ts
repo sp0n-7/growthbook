@@ -168,6 +168,12 @@ export async function getDefinitions(req: AuthRequest, res: Response) {
     context.models.factMetrics.getAll(),
   ]);
 
+  // Dimensions inherit project access from their datasource
+  const readableDatasourceIds = new Set(datasources.map((ds) => ds.id));
+  const visibleDimensions = dimensions.filter((dimension) =>
+    readableDatasourceIds.has(dimension.datasource)
+  );
+
   return res.status(200).json({
     status: 200,
     metrics,
@@ -187,7 +193,7 @@ export async function getDefinitions(req: AuthRequest, res: Response) {
         dateUpdated: d.dateUpdated,
       };
     }),
-    dimensions,
+    dimensions: visibleDimensions,
     segments,
     tags,
     savedGroups,
@@ -275,7 +281,8 @@ export async function getHistory(
   req: AuthRequest<null, { type: string; id: string }>,
   res: Response
 ) {
-  const { org } = getContextFromReq(req);
+  const context = getContextFromReq(req);
+  const { org } = context;
   const { type, id } = req.params;
 
   if (!isValidAuditEntityType(type)) {
@@ -283,6 +290,11 @@ export async function getHistory(
       status: 400,
       message: `${type} is not a valid entity type. Possible entity types are: ${EntityType}`,
     });
+  }
+
+  // Organization audit entries include invite keys
+  if (type === "organization" && !context.permissions.canManageTeam()) {
+    context.permissions.throwPermissionError();
   }
 
   const events = await Promise.all([
@@ -424,12 +436,13 @@ export async function putMember(
   }
 
   try {
+    const reqEmailLower = req.email.toLowerCase();
     const invite: Invite | undefined = organization.invites.find(
-      (inv) => inv.email === req.email
+      (inv) => inv.email.toLowerCase() === reqEmailLower
     );
     if (invite) {
       // if user already invited, accept invite
-      await acceptInvite(invite.key, req.userId);
+      await acceptInvite(invite.key, req.userId, req.email);
     } else if (organization.autoApproveMembers) {
       // if auto approve, add user as member
       await addMemberToOrg({
@@ -697,6 +710,13 @@ export async function getOrganization(req: AuthRequest, res: Response) {
     context.permissions.canReadMultiProjectResource(environment.projects)
   );
 
+  // Use a stripped down list of invites if the user doesn't have permission to manage the team
+  // The full invite object contains a key which can be used to accept the invite
+  // Without this filtering, a user could accept an invite of a higher-privileged user and assume their role
+  const filteredInvites = context.permissions.canManageTeam()
+    ? invites
+    : invites.map((i) => ({ email: i.email }));
+
   // Some other global org data needed by the front-end
   const apiKeys = await getAllApiKeysByOrganization(context);
   const enterpriseSSO = isEnterpriseSSO(req.loginMethod)
@@ -744,7 +764,7 @@ export async function getOrganization(req: AuthRequest, res: Response) {
       features: watch?.features || [],
     },
     organization: {
-      invites,
+      invites: filteredInvites,
       ownerEmail,
       externalId,
       name,
@@ -1062,10 +1082,10 @@ export async function postInviteAccept(
   const { key } = req.body;
 
   try {
-    if (!req.userId) {
+    if (!req.userId || !req.email) {
       throw new Error("Must be logged in");
     }
-    const org = await acceptInvite(key, req.userId);
+    const org = await acceptInvite(key, req.userId, req.email);
 
     return res.status(200).json({
       status: 200,

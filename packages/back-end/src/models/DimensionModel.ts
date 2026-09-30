@@ -2,6 +2,9 @@ import mongoose from "mongoose";
 import { ApiDimension } from "../../types/openapi";
 import { DimensionInterface } from "../../types/dimension";
 import { getConfigDimensions, usingFileConfig } from "../init/config";
+import { ReqContext } from "../../types/organization";
+import { ApiReqContext } from "../../types/api";
+import { getDataSourceById } from "./DataSourceModel";
 
 const dimensionSchema = new mongoose.Schema({
   id: String,
@@ -51,6 +54,14 @@ export async function findDimensionById(id: string, organization: string) {
   const doc = await DimensionModel.findOne({ id, organization });
 
   return doc ? toInterface(doc) : null;
+}
+
+// Dimensions inherit project access from their datasource
+export async function hasDimensionDatasourceAccess(
+  context: ReqContext | ApiReqContext,
+  dimension: DimensionInterface
+): Promise<boolean> {
+  return !!(await getDataSourceById(context, dimension.datasource));
 }
 
 export async function findDimensionsByDataSource(

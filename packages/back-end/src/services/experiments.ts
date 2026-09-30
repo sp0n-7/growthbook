@@ -17,6 +17,7 @@ import { getScopedSettings } from "shared/settings";
 import {
   DRAFT_REVISION_STATUSES,
   generateVariationId,
+  getAffectedEnvsForExperiment,
   getMatchingRules,
   getSnapshotAnalysis,
   isAnalysisAllowed,
@@ -2107,6 +2108,45 @@ export function updateExperimentApiPayloadToInterface(
       : {}),
     dateUpdated: new Date(),
   };
+}
+
+// Shared by the dashboard and REST update routes so both gate the same fields
+const PAYLOAD_AFFECTING_EXPERIMENT_FIELDS: (keyof ExperimentInterface)[] = [
+  "phases",
+  "variations",
+  "project",
+  "name",
+  "trackingKey",
+  "archived",
+  "status",
+  "releasedVariationId",
+  "excludeFromPayload",
+  // Bucketing fields reach the SDK payload via the REST route
+  "hashAttribute",
+  "hashVersion",
+];
+export function assertCanRunExperimentChanges(
+  context: ReqContext | ApiReqContext,
+  experiment: ExperimentInterface,
+  changes: Partial<ExperimentInterface>
+): void {
+  if (!PAYLOAD_AFFECTING_EXPERIMENT_FIELDS.some((key) => key in changes)) {
+    return;
+  }
+
+  const envs = getAffectedEnvsForExperiment({ experiment });
+  if (envs.length > 0) {
+    const projects = [experiment.project || undefined];
+    if ("project" in changes) {
+      projects.push(changes.project || undefined);
+    }
+    // check user's permission on existing experiment project and the updated project, if changed
+    projects.forEach((project) => {
+      if (!context.permissions.canRunExperiment({ project }, envs)) {
+        context.permissions.throwPermissionError();
+      }
+    });
+  }
 }
 
 export async function getSettingsForSnapshotMetrics(

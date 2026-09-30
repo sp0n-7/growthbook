@@ -1,4 +1,5 @@
 import { randomBytes } from "crypto";
+import { z } from "zod";
 import { freeEmailDomains } from "free-email-domains-typescript";
 import { cloneDeep } from "lodash";
 import { Request } from "express";
@@ -433,7 +434,7 @@ export async function addPendingMemberToOrg({
   await updateOrganization(organization.id, { pendingMembers });
 }
 
-export async function acceptInvite(key: string, userId: string) {
+export async function acceptInvite(key: string, userId: string, email: string) {
   const organization = await findOrganizationByInviteKey(key);
   if (!organization) {
     throw new Error("Invalid key");
@@ -449,6 +450,11 @@ export async function acceptInvite(key: string, userId: string) {
   const invite = organization.invites.filter((invite) => invite.key === key)[0];
   if (!invite) {
     throw new Error("Could not find invitation with that key");
+  }
+
+  // A leaked invite key must not let another user join with the invited role
+  if (!email || email.toLowerCase() !== invite.email.toLowerCase()) {
+    throw new Error("This invitation was sent to a different email address");
   }
 
   // Remove invite
@@ -494,15 +500,23 @@ export async function inviteUser({
 } & MemberRoleWithProjects) {
   organization.invites = organization.invites || [];
 
-  // User is already invited
-  if (
-    organization.invites.filter((invite) => invite.email === email).length > 0
-  ) {
+  email = email
+    .toLowerCase()
+    .replace(/^[\s;,]+/, "")
+    .replace(/[\s;,]+$/, "");
+
+  if (!z.string().email().safeParse(email).success) {
+    throw new Error(`Invalid email address: ${email}`);
+  }
+
+  // Legacy invites may be stored with mixed case
+  const existingInvite = organization.invites.find(
+    (invite) => invite.email.toLowerCase() === email
+  );
+  if (existingInvite) {
     return {
       emailSent: true,
-      inviteUrl: getInviteUrl(
-        organization.invites.filter((invite) => invite.email === email)[0].key
-      ),
+      inviteUrl: getInviteUrl(existingInvite.key),
     };
   }
 

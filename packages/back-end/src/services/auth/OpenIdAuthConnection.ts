@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, RequestHandler, Response } from "express";
 import {
   Issuer,
   IssuerMetadata,
@@ -8,7 +8,8 @@ import {
   custom,
 } from "openid-client";
 
-import jwtExpress, { RequestHandler } from "express-jwt";
+import { expressjwt, GetVerificationKey } from "express-jwt";
+import type { Algorithm } from "jsonwebtoken";
 import jwks from "jwks-rsa";
 import { SSO_CONFIG } from "enterprise";
 import { AuthRequest } from "../../types/AuthRequest";
@@ -149,7 +150,7 @@ export class OpenIdAuthConnection implements AuthConnection {
       const metadata = connection.metadata;
 
       const jwksUri = metadata.jwks_uri;
-      const algorithms = metadata.id_token_signing_alg_values_supported;
+      const algorithms = metadata.id_token_signing_alg_values_supported as Algorithm[];
       const issuer = metadata.issuer;
 
       if (!jwksUri || !algorithms || !issuer) {
@@ -167,17 +168,30 @@ export class OpenIdAuthConnection implements AuthConnection {
 
       let middleware = jwksMiddlewareCache[cacheKey];
       if (!middleware) {
-        middleware = jwtExpress({
-          secret: jwks.expressJwtSecret({
-            cache: true,
-            cacheMaxEntries: 50,
-            rateLimit: true,
-            jwksRequestsPerMinute: 5,
-            jwksUri,
-          }),
+        const jwksClient = jwks.expressJwtSecret({
+          cache: true,
+          cacheMaxEntries: 50,
+          rateLimit: true,
+          jwksRequestsPerMinute: 5,
+          jwksUri,
+        });
+
+        const getKey: GetVerificationKey = (req, token) => {
+          return new Promise((resolve, reject) => {
+            const callback = (err: Error | null, key?: string) => {
+              if (err) return reject(err);
+              resolve(key);
+            };
+            jwksClient(req, token?.header, token?.payload, callback);
+          });
+        };
+
+        middleware = expressjwt({
+          secret: getKey,
           audience: connection.clientId,
           issuer,
           algorithms,
+          requestProperty: "user",
         });
         jwksMiddlewareCache[cacheKey] = middleware;
       }

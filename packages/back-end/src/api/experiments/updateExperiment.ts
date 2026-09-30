@@ -6,6 +6,7 @@ import {
   getExperimentByTrackingKey,
 } from "../../models/ExperimentModel";
 import {
+  assertCanRunExperimentChanges,
   toExperimentApiInterface,
   updateExperimentApiPayloadToInterface,
 } from "../../services/experiments";
@@ -61,10 +62,15 @@ export const updateExperiment = createApiRequestHandler(
       }
     }
 
+    const changes = updateExperimentApiPayloadToInterface(req.body, experiment);
+
+    // Payload-affecting fields also need run permission, as in the dashboard route
+    assertCanRunExperimentChanges(req.context, experiment, changes);
+
     const updatedExperiment = await updateExperimentToDb({
       context: req.context,
       experiment: experiment,
-      changes: updateExperimentApiPayloadToInterface(req.body, experiment),
+      changes,
     });
 
     if (updatedExperiment === null) {

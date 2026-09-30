@@ -284,6 +284,20 @@ export async function getFeaturesByIds(
   );
 }
 
+// Ignores read access. Only use it for permission checks, never to return
+// feature data to the caller.
+export async function getFeatureProjectsByIds(
+  context: ReqContext | ApiReqContext,
+  ids: string[]
+): Promise<Map<string, string | undefined>> {
+  if (!ids.length) return new Map();
+  const features = await FeatureModel.find(
+    { organization: context.org.id, id: { $in: ids } },
+    { id: 1, project: 1, _id: 0 }
+  );
+  return new Map(features.map((f) => [f.id, f.project || undefined]));
+}
+
 export async function createFeature(
   context: ReqContext | ApiReqContext,
   data: FeatureInterface

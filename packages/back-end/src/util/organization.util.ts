@@ -170,21 +170,17 @@ function mergeUserAndTeamPermissions(
     ...Object.keys(teamPermissions.projects),
   ]);
 
-  // Loop through that list of projects and merge the user and team permissions
+  // Loop through that list of projects and merge the user and team permissions.
+  // An explicit project role takes precedence over a global role.
+  const noProjectRole = (): UserPermission => ({
+    limitAccessByEnvironment: false,
+    environments: [],
+    permissions: {},
+  });
   allProjects.forEach((project) => {
     userPermissions.projects[project] = mergeUserPermissionObj(
-      userPermissions.projects[project] || {
-        limitAccessByEnvironment:
-          userPermissions.global.limitAccessByEnvironment,
-        environments: userPermissions.global.environments,
-        permissions: userPermissions.global.permissions,
-      },
-      teamPermissions.projects[project] || {
-        limitAccessByEnvironment:
-          teamPermissions.global.limitAccessByEnvironment,
-        environments: teamPermissions.global.environments,
-        permissions: teamPermissions.global.permissions,
-      },
+      userPermissions.projects[project] || noProjectRole(),
+      teamPermissions.projects[project] || noProjectRole(),
       org
     );
   });

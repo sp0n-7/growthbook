@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import jwtExpress from "express-jwt";
+import { expressjwt } from "express-jwt";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../../util/secrets";
 import { UserInterface } from "../../../types/user";
@@ -15,11 +15,12 @@ import { getUserById } from "../../models/UserModel";
 import { AuthConnection, TokensResponse } from "./AuthConnection";
 import { isNewInstallation } from ".";
 
-const jwtCheck = jwtExpress({
+const jwtCheck = expressjwt({
   secret: JWT_SECRET,
   audience: "https://api.growthbook.io",
   issuer: "https://api.growthbook.io",
   algorithms: ["HS256"],
+  requestProperty: "user",
 });
 
 export class LocalAuthConnection implements AuthConnection {

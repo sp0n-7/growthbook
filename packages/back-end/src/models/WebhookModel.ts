@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 import { omit } from "lodash";
 import uniqid from "uniqid";
-import md5 from "md5";
 import { z } from "zod";
 import { ReqContext } from "../../types/organization";
 import { migrateWebhookModel } from "../util/migrations";
 import { WebhookInterface } from "../../types/webhook";
+import { generateSigningKey } from "./ApiKeyModel";
 
 const webhookSchema = new mongoose.Schema({
   id: {
@@ -181,7 +181,7 @@ export async function createSdkWebhook(
   data = createSdkWebhookValidator.parse(data);
 
   const id = uniqid("wh_");
-  const signingKey = "wk_" + md5(uniqid()).substr(0, 16);
+  const signingKey = generateSigningKey("wk_");
   const doc: WebhookInterface = {
     ...data,
     id,

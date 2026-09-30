@@ -20,6 +20,7 @@ import { DataSourceInterface } from "@back-end/types/datasource";
 import { AuthRequest, ResponseWithStatusAndError } from "../types/AuthRequest";
 import {
   SnapshotAnalysisParams,
+  assertCanRunExperimentChanges,
   createManualSnapshot,
   createSnapshot,
   createSnapshotAnalyses,
@@ -860,35 +861,7 @@ export async function postExperiment(
     changes.phases = phases;
   }
 
-  // Only some fields affect production SDK payloads
-  const needsRunExperimentsPermission = ([
-    "phases",
-    "variations",
-    "project",
-    "name",
-    "trackingKey",
-    "archived",
-    "status",
-    "releasedVariationId",
-    "excludeFromPayload",
-  ] as (keyof ExperimentInterfaceStringDates)[]).some((key) => key in changes);
-  if (needsRunExperimentsPermission) {
-    const envs = getAffectedEnvsForExperiment({
-      experiment,
-    });
-    if (envs.length > 0) {
-      const projects = [experiment.project || undefined];
-      if ("project" in changes) {
-        projects.push(changes.project || undefined);
-      }
-      // check user's permission on existing experiment project and the updated project, if changed
-      projects.forEach((project) => {
-        if (!context.permissions.canRunExperiment({ project }, envs)) {
-          context.permissions.throwPermissionError();
-        }
-      });
-    }
-  }
+  assertCanRunExperimentChanges(context, experiment, changes);
 
   const updated = await updateExperiment({
     context,
