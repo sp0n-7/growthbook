@@ -1,5 +1,7 @@
 ARG PYTHON_MAJOR=3.11
-ARG NODE_MAJOR=20
+# Node 22.23.4+ / 24.22.1+ drop emSign ECC Root CA - G3 from the built-in root store (SEC-034,
+# CVE-2026-111943). Node 20 is EOL and gets no further root-store updates.
+ARG NODE_MAJOR=22
 
 # Build the python gbstats package
 FROM python:${PYTHON_MAJOR}-slim AS pybuild
@@ -72,6 +74,13 @@ RUN apt-get update && \
   apt-get install -yqq nodejs yarn && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
+# Fail the build if NodeSource served a Node whose built-in root store still trusts the
+# compromised eMudhra root (emSign ECC Root CA - G3) or AAA Certificate Services. SEC-034.
+RUN node -e "const {X509Certificate} = require('crypto'); \
+const bad = require('tls').rootCertificates.map((p) => new X509Certificate(p).subject) \
+  .filter((s) => /CN=(emSign ECC Root CA - G3|AAA Certificate Services)/.test(s)); \
+if (bad.length) { console.error('Node', process.version, 'still trusts:', bad); process.exit(1); } \
+console.log('Node', process.version, 'root store OK');"
 COPY --from=pybuild /usr/local/src/app/requirements.txt /usr/local/src/requirements.txt
 RUN pip3 install -r /usr/local/src/requirements.txt && rm -rf /root/.cache/pip
 COPY --from=nodebuild /usr/local/src/app/packages ./packages
